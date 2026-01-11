@@ -1,0 +1,3698 @@
+wait(1)
+
+if not getgenv().ThemeRegistry then
+    getgenv().ThemeRegistry = {
+        strokes = {},
+        labels = {},
+        gradients = {},
+        scrollbars = {},
+        shadows = {},
+        tabButtons = {},
+        imageLabels = {},
+        backgrounds = {},
+        tabContainer = nil,
+        minimizeButton = nil,
+        textboxes = {},
+        keybindButtons = {}
+    }
+end
+
+if not getgenv().ThemeToggles then getgenv().ThemeToggles = {} end
+if not getgenv().ThemeSliders then getgenv().ThemeSliders = {} end
+if not getgenv().ThemeDropdowns then getgenv().ThemeDropdowns = {} end
+
+local function GetAccentColor()
+    return getgenv().ThemeAccent or Color3.fromRGB(120, 50, 180)
+end
+
+local function GetAccentDark()
+    local accent = GetAccentColor()
+    return Color3.fromRGB(
+        math.floor(accent.R * 255 * 0.5),
+        math.floor(accent.G * 255 * 0.5),
+        math.floor(accent.B * 255 * 0.5)
+    )
+end
+
+local function GetAccentMid()
+    local accent = GetAccentColor()
+    return Color3.fromRGB(
+        math.floor(accent.R * 255 * 0.7),
+        math.floor(accent.G * 255 * 0.7),
+        math.floor(accent.B * 255 * 0.7)
+    )
+end
+
+local function GetAccentLight()
+    local accent = GetAccentColor()
+    return Color3.fromRGB(
+        math.min(255, math.floor(accent.R * 255 * 1.4)),
+        math.min(255, math.floor(accent.G * 255 * 1.4)),
+        math.min(255, math.floor(accent.B * 255 * 1.4))
+    )
+end
+
+local function GetAccentVeryDark()
+    local accent = GetAccentColor()
+    return Color3.fromRGB(
+        math.floor(accent.R * 255 * 0.28),
+        math.floor(accent.G * 255 * 0.22),
+        math.floor(accent.B * 255 * 0.35)
+    )
+end
+
+local function GetAccentSuperDark()
+    local accent = GetAccentColor()
+    return Color3.fromRGB(
+        math.floor(accent.R * 255 * 0.25),
+        math.floor(accent.G * 255 * 0.18),
+        math.floor(accent.B * 255 * 0.28)
+    )
+end
+
+local function GetAccentHex()
+    local accent = GetAccentColor()
+    return string.format("#%02X%02X%02X", 
+        math.floor(accent.R * 255), 
+        math.floor(accent.G * 255), 
+        math.floor(accent.B * 255))
+end
+
+-- Funciones de registro
+local function RegisterBackground(frame, intensity)
+    table.insert(getgenv().ThemeRegistry.backgrounds, {ref = frame, intensity = intensity or "veryDark"})
+end
+local function RegisterStroke(stroke, intensity)
+    table.insert(getgenv().ThemeRegistry.strokes, {ref = stroke, intensity = intensity or "normal"})
+end
+
+local function RegisterLabel(label, intensity)
+    table.insert(getgenv().ThemeRegistry.labels, {ref = label, intensity = intensity or "light"})
+end
+
+local function RegisterGradient(gradient, gradType)
+    table.insert(getgenv().ThemeRegistry.gradients, {ref = gradient, gradType = gradType})
+end
+
+local function RegisterScrollbar(scrollFrame)
+    table.insert(getgenv().ThemeRegistry.scrollbars, scrollFrame)
+end
+
+local function RegisterShadow(shadow)
+    table.insert(getgenv().ThemeRegistry.shadows, shadow)
+end
+
+local function RegisterImageLabel(img, intensity)
+    table.insert(getgenv().ThemeRegistry.imageLabels, {ref = img, intensity = intensity or "light"})
+end
+
+local function RegisterTextbox(textbox)
+    table.insert(getgenv().ThemeRegistry.textboxes, textbox)
+end
+
+local function RegisterKeybindButton(btn)
+    table.insert(getgenv().ThemeRegistry.keybindButtons, btn)
+end
+
+-- ═══════════════════════════════════════════════════════════════════
+-- FUNCIÓN GLOBAL PARA REFRESCAR TODO EL TEMA
+-- ═══════════════════════════════════════════════════════════════════
+getgenv().RefreshAllTheme = function()
+    local accent = GetAccentColor()
+    local accentDark = GetAccentDark()
+    local accentMid = GetAccentMid()
+    local accentLight = GetAccentLight()
+    local accentVeryDark = GetAccentVeryDark()
+    local accentSuperDark = GetAccentSuperDark()
+    
+    -- Strokes
+    for _, data in pairs(getgenv().ThemeRegistry.strokes) do
+        if data.ref and data.ref.Parent then
+            if data.intensity == "dark" then
+                data.ref.Color = accentDark
+            elseif data.intensity == "mid" then
+                data.ref.Color = accentMid
+            elseif data.intensity == "light" then
+                data.ref.Color = accentLight
+            else
+                data.ref.Color = accent
+            end
+        end
+    end
+    
+    -- Labels
+    for _, data in pairs(getgenv().ThemeRegistry.labels) do
+        if data.ref and data.ref.Parent then
+            if data.intensity == "dark" then
+                data.ref.TextColor3 = accentDark
+            elseif data.intensity == "light" then
+                data.ref.TextColor3 = accentLight
+            elseif data.intensity == "mid" then
+                data.ref.TextColor3 = accentMid
+            else
+                data.ref.TextColor3 = accent
+            end
+        end
+    end
+    
+    -- ImageLabels
+    for _, data in pairs(getgenv().ThemeRegistry.imageLabels) do
+        if data.ref and data.ref.Parent then
+            if data.intensity == "dark" then
+                data.ref.ImageColor3 = accentDark
+            elseif data.intensity == "light" then
+                data.ref.ImageColor3 = accentLight
+            else
+                data.ref.ImageColor3 = accent
+            end
+        end
+    end
+    
+    -- Gradients
+    for _, data in pairs(getgenv().ThemeRegistry.gradients) do
+        if data.ref and data.ref.Parent then
+            if data.gradType == "bg" then
+                data.ref.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 15, 15)),
+                    ColorSequenceKeypoint.new(0.4, Color3.fromRGB(
+                        math.floor(accent.R * 255 * 0.12),
+                        math.floor(accent.G * 255 * 0.08),
+                        math.floor(accent.B * 255 * 0.16)
+                    )),
+                    ColorSequenceKeypoint.new(0.7, Color3.fromRGB(
+                        math.floor(accent.R * 255 * 0.2),
+                        math.floor(accent.G * 255 * 0.1),
+                        math.floor(accent.B * 255 * 0.3)
+                    )),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(
+                        math.floor(accent.R * 255 * 0.33),
+                        math.floor(accent.G * 255 * 0.13),
+                        math.floor(accent.B * 255 * 0.5)
+                    ))
+                })
+            elseif data.gradType == "title" then
+                data.ref.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, accentLight),
+                    ColorSequenceKeypoint.new(0.5, accent),
+                    ColorSequenceKeypoint.new(1, accentDark)
+                })
+            elseif data.gradType == "slider" then
+                data.ref.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, accentDark),
+                    ColorSequenceKeypoint.new(1, accentLight)
+                })
+            end
+        end
+    end
+    
+    -- Scrollbars
+    for _, sf in pairs(getgenv().ThemeRegistry.scrollbars) do
+        if sf and sf.Parent then
+            sf.ScrollBarImageColor3 = accent
+        end
+    end
+    
+    -- Shadows
+    for _, shadow in pairs(getgenv().ThemeRegistry.shadows) do
+        if shadow and shadow.Parent then
+            shadow.ImageColor3 = accentDark
+        end
+    end
+    
+    -- Tab Buttons - CORREGIDO: mantiene el estado seleccionado
+    for _, data in pairs(getgenv().ThemeRegistry.tabButtons) do
+        if data.Button and data.Button.Parent then
+            if data.isSelected then
+                data.Button.BackgroundColor3 = accentDark
+            else
+                data.Button.BackgroundColor3 = accentVeryDark
+            end
+        end
+    end
+
+    -- Backgrounds
+    for _, data in pairs(getgenv().ThemeRegistry.backgrounds) do
+        if data.ref and data.ref.Parent then
+            if data.intensity == "superDark" then
+                data.ref.BackgroundColor3 = accentSuperDark
+            elseif data.intensity == "dark" then
+                data.ref.BackgroundColor3 = accentDark
+            else
+                data.ref.BackgroundColor3 = accentVeryDark
+            end
+        end
+    end
+
+    -- Tab Container
+    if getgenv().ThemeRegistry.tabContainer and getgenv().ThemeRegistry.tabContainer.Parent then
+        getgenv().ThemeRegistry.tabContainer.BackgroundColor3 = accentSuperDark
+    end
+    
+    -- Minimize Button
+    if getgenv().ThemeRegistry.minimizeButton and getgenv().ThemeRegistry.minimizeButton.Parent then
+        getgenv().ThemeRegistry.minimizeButton.BackgroundColor3 = accentSuperDark
+    end
+    
+    -- Textboxes - actualizar PlaceholderColor3 y BackgroundColor3
+    for _, textbox in pairs(getgenv().ThemeRegistry.textboxes) do
+        if textbox and textbox.Parent then
+            textbox.PlaceholderColor3 = accentLight
+            textbox.BackgroundColor3 = accentSuperDark
+        end
+    end
+    
+    -- Keybind Buttons
+    for _, btn in pairs(getgenv().ThemeRegistry.keybindButtons) do
+        if btn and btn.Parent then
+            btn.BackgroundColor3 = accentDark
+        end
+    end
+    
+    -- Toggles
+    for _, t in pairs(getgenv().ThemeToggles) do
+        if t and t.RefreshTheme then
+            pcall(function() t.RefreshTheme() end)
+        end
+    end
+    
+    -- Sliders
+    for _, s in pairs(getgenv().ThemeSliders) do
+        if s and s.RefreshTheme then
+            pcall(function() s.RefreshTheme() end)
+        end
+    end
+    
+    -- Dropdowns
+    for _, d in pairs(getgenv().ThemeDropdowns) do
+        if d and d.RefreshTheme then
+            pcall(function() d.RefreshTheme() end)
+        end
+    end
+    
+    -- Keybinds
+    if getgenv().TeleportKeybinds then
+        for _, kb in pairs(getgenv().TeleportKeybinds) do
+            if kb and kb.RefreshTheme then
+                pcall(function() kb.RefreshTheme() end)
+            end
+        end
+    end
+    
+    -- Hotkey Panel
+    if getgenv().RefreshHotkeyPanel then
+        pcall(function() getgenv().RefreshHotkeyPanel() end)
+    end
+end
+
+-- ═══════════════════════════════════════════════════════════════════
+-- UILIB
+-- ═══════════════════════════════════════════════════════════════════
+local UILib = {}
+
+getgenv().HotkeySystem = {
+    hotkeys = {},
+    panel = nil,
+    entries = {}
+}
+
+-- ═══════════════════════════════════════════════════════════════════
+-- NUEVO DISEÑO DE HOTKEY PANEL - Sin mainframe, con línea separadora
+-- ═══════════════════════════════════════════════════════════════════
+local function CreateHotkeyPanel()
+    local Players = game:GetService("Players")
+    local TweenService = game:GetService("TweenService")
+    
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "HotkeyPanel"
+    screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    screenGui.ResetOnSpawn = false
+    screenGui.DisplayOrder = 100
+    
+    -- Container principal (solo para organizar, transparente)
+    local mainContainer = Instance.new("Frame")
+    mainContainer.Name = "HotkeyContainer"
+    mainContainer.Parent = screenGui
+    mainContainer.Size = UDim2.new(0, 140, 0, 200)
+    mainContainer.Position = UDim2.new(0, 10, 0.3, 0)
+    mainContainer.BackgroundTransparency = 1
+    mainContainer.Active = true
+    mainContainer.Draggable = true
+    mainContainer.Visible = false
+    mainContainer.AutomaticSize = Enum.AutomaticSize.Y
+    
+    -- Header: icono + texto "hotkeys" (sin fondo)
+    local headerFrame = Instance.new("Frame", mainContainer)
+    headerFrame.Size = UDim2.new(1, 0, 0, 20)
+    headerFrame.BackgroundTransparency = 1
+    
+    local icon = Instance.new("TextLabel", headerFrame)
+    icon.Text = "⌨"
+    icon.Size = UDim2.new(0, 20, 0, 20)
+    icon.Position = UDim2.new(0, 0, 0, 0)
+    icon.BackgroundTransparency = 1
+    icon.TextColor3 = GetAccentLight()
+    icon.Font = Enum.Font.GothamBold
+    icon.TextSize = 14
+    RegisterLabel(icon, "light")
+    
+    local title = Instance.new("TextLabel", headerFrame)
+    title.Name = "TitleLabel"
+    title.Text = "hotkeys"
+    title.Size = UDim2.new(1, -25, 0, 20)
+    title.Position = UDim2.new(0, 22, 0, 0)
+    title.BackgroundTransparency = 1
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 14
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- Línea horizontal blanca
+    local divider = Instance.new("Frame", mainContainer)
+    divider.Name = "Divider"
+    divider.Size = UDim2.new(1, 0, 0, 1)
+    divider.Position = UDim2.new(0, 0, 0, 22)
+    divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    divider.BackgroundTransparency = 0.5
+    divider.BorderSizePixel = 0
+    
+    -- Lista de hotkeys (cada uno con su propio frame)
+    local listFrame = Instance.new("Frame", mainContainer)
+    listFrame.Name = "ListFrame"
+    listFrame.Size = UDim2.new(1, 0, 0, 0)
+    listFrame.Position = UDim2.new(0, 0, 0, 28)
+    listFrame.BackgroundTransparency = 1
+    listFrame.AutomaticSize = Enum.AutomaticSize.Y
+    
+    local listLayout = Instance.new("UIListLayout", listFrame)
+    listLayout.Padding = UDim.new(0, 6)
+    listLayout.SortOrder = Enum.SortOrder.Name
+    
+    getgenv().HotkeySystem.panel = screenGui
+    getgenv().HotkeySystem.listFrame = listFrame
+    getgenv().HotkeySystem.mainContainer = mainContainer
+    
+    -- Función para refrescar colores del panel
+    getgenv().RefreshHotkeyPanel = function()
+        icon.TextColor3 = GetAccentLight()
+        -- Actualizar entradas existentes
+        for name, entry in pairs(getgenv().HotkeySystem.entries) do
+            if entry.frame and entry.frame.Parent then
+                entry.frame.BackgroundColor3 = GetAccentVeryDark()
+                if entry.stroke then
+                    entry.stroke.Color = GetAccentMid()
+                end
+                local hotkey = getgenv().HotkeySystem.hotkeys[name]
+                if hotkey and hotkey.active then
+                    entry.check.TextColor3 = GetAccentColor()
+                    entry.label.TextColor3 = GetAccentColor()
+                end
+            end
+        end
+    end
+    
+    return screenGui
+end
+
+local function UpdateHotkeyEntry(name)
+    local system = getgenv().HotkeySystem
+    local hotkey = system.hotkeys[name]
+    local entry = system.entries[name]
+    
+    if not hotkey or not entry then return end
+    
+    local accent = GetAccentColor()
+    
+    if hotkey.active then
+        entry.check.Text = "✓"
+        entry.check.TextColor3 = accent
+        entry.label.TextColor3 = accent
+    else
+        entry.check.Text = "✓"
+        entry.check.TextColor3 = Color3.fromRGB(255, 255, 255)
+        entry.label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end
+end
+
+local function AddHotkeyEntry(name, keyCode)
+    local system = getgenv().HotkeySystem
+    local listFrame = system.listFrame
+    
+    if not listFrame then
+        CreateHotkeyPanel()
+        listFrame = system.listFrame
+    end
+    
+    -- Si ya existe, actualizarlo
+    if system.entries[name] then
+        system.entries[name].keyLabel.Text = "[" .. keyCode.Name .. "]"
+        return
+    end
+    
+    -- Frame individual para cada hotkey (CON fondo)
+    local entryFrame = Instance.new("Frame", listFrame)
+    entryFrame.Name = name
+    entryFrame.Size = UDim2.new(1, 0, 0, 28)
+    entryFrame.BackgroundColor3 = GetAccentVeryDark()
+    entryFrame.BackgroundTransparency = 0.2
+    entryFrame.BorderSizePixel = 0
+    Instance.new("UICorner", entryFrame).CornerRadius = UDim.new(0, 6)
+    
+    local entryStroke = Instance.new("UIStroke", entryFrame)
+    entryStroke.Color = GetAccentMid()
+    entryStroke.Thickness = 1
+    entryStroke.Transparency = 0.5
+    
+    local check = Instance.new("TextLabel", entryFrame)
+    check.Text = "✓"
+    check.Size = UDim2.new(0, 20, 1, 0)
+    check.Position = UDim2.new(0, 4, 0, 0)
+    check.BackgroundTransparency = 1
+    check.TextColor3 = Color3.fromRGB(255, 255, 255)
+    check.Font = Enum.Font.GothamBold
+    check.TextSize = 12
+    
+    local label = Instance.new("TextLabel", entryFrame)
+    label.Text = name
+    label.Size = UDim2.new(1, -30, 1, 0)
+    label.Position = UDim2.new(0, 26, 0, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- KeyLabel oculto pero guardado para referencia
+    local keyLabel = Instance.new("TextLabel", entryFrame)
+    keyLabel.Text = "[" .. keyCode.Name .. "]"
+    keyLabel.Visible = false
+    
+    system.entries[name] = {
+        frame = entryFrame,
+        check = check,
+        label = label,
+        keyLabel = keyLabel,
+        stroke = entryStroke
+    }
+    
+    -- Mostrar panel si hay al menos un hotkey
+    if system.mainContainer then
+        system.mainContainer.Visible = true
+    end
+    
+    UpdateHotkeyEntry(name)
+end
+
+local function RemoveHotkeyEntry(name)
+    local system = getgenv().HotkeySystem
+    
+    if system.entries[name] then
+        system.entries[name].frame:Destroy()
+        system.entries[name] = nil
+    end
+    
+    -- Ocultar panel si no hay hotkeys
+    local hasAny = false
+    for _ in pairs(system.entries) do
+        hasAny = true
+        break
+    end
+    
+    if not hasAny and system.mainContainer then
+        system.mainContainer.Visible = false
+    end
+end
+
+local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeybindRemove)
+    local TweenService = game:GetService("TweenService")
+    local UserInputService = game:GetService("UserInputService")
+    local Players = game:GetService("Players")
+    
+    -- Cerrar popup existente si hay
+    local existingPopup = Players.LocalPlayer.PlayerGui:FindFirstChild("KeybindPopup")
+    if existingPopup then
+        existingPopup:Destroy()
+    end
+    
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "KeybindPopup"
+    screenGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    screenGui.ResetOnSpawn = false
+    screenGui.DisplayOrder = 200
+    
+    -- Fondo semi-transparente para cerrar al hacer click fuera
+    local backdrop = Instance.new("TextButton", screenGui)
+    backdrop.Size = UDim2.new(1, 0, 1, 0)
+    backdrop.BackgroundTransparency = 1
+    backdrop.Text = ""
+    backdrop.ZIndex = 1
+    
+    local popup = Instance.new("Frame", screenGui)
+    popup.Size = UDim2.new(0, 180, 0, 45)
+    popup.BackgroundColor3 = GetAccentVeryDark()
+    popup.BorderSizePixel = 0
+    popup.ZIndex = 10
+    Instance.new("UICorner", popup).CornerRadius = UDim.new(0, 10)
+    
+    local popupStroke = Instance.new("UIStroke", popup)
+    popupStroke.Color = GetAccentColor()
+    popupStroke.Thickness = 1
+    popupStroke.Transparency = 0.3
+    
+    -- Posicionar cerca del toggle
+    local absPos = parentToggle.AbsolutePosition
+    local absSize = parentToggle.AbsoluteSize
+    popup.Position = UDim2.fromOffset(absPos.X + absSize.X + 10, absPos.Y)
+    
+    -- Contenedor principal
+    local content = Instance.new("Frame", popup)
+    content.Size = UDim2.new(1, -16, 1, -10)
+    content.Position = UDim2.new(0, 8, 0, 5)
+    content.BackgroundTransparency = 1
+    content.ZIndex = 11
+    
+    -- Checkbox de Toggle
+    local toggleCheck = Instance.new("TextButton", content)
+    toggleCheck.Size = UDim2.new(0, 18, 0, 18)
+    toggleCheck.Position = UDim2.new(0, 0, 0, 8)
+    toggleCheck.BackgroundColor3 = GetAccentSuperDark()
+    toggleCheck.Text = ""
+    toggleCheck.ZIndex = 12
+    toggleCheck.AutoButtonColor = false
+    Instance.new("UICorner", toggleCheck).CornerRadius = UDim.new(0, 4)
+    
+    local checkStroke = Instance.new("UIStroke", toggleCheck)
+    checkStroke.Color = GetAccentMid()
+    checkStroke.Thickness = 1
+    
+    local checkMark = Instance.new("TextLabel", toggleCheck)
+    checkMark.Text = ""
+    checkMark.Size = UDim2.new(1, 0, 1, 0)
+    checkMark.BackgroundTransparency = 1
+    checkMark.TextColor3 = GetAccentLight()
+    checkMark.Font = Enum.Font.GothamBold
+    checkMark.TextSize = 14
+    checkMark.ZIndex = 13
+    
+    local toggleLabel = Instance.new("TextLabel", content)
+    toggleLabel.Text = "Toggle"
+    toggleLabel.Size = UDim2.new(0, 50, 0, 18)
+    toggleLabel.Position = UDim2.new(0, 24, 0, 8)
+    toggleLabel.BackgroundTransparency = 1
+    toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toggleLabel.Font = Enum.Font.GothamBold
+    toggleLabel.TextSize = 13
+    toggleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    toggleLabel.ZIndex = 12
+    
+    -- Botón Set Keybind
+    local keybindBtn = Instance.new("TextButton", content)
+    keybindBtn.Size = UDim2.new(0, 85, 0, 22)
+    keybindBtn.Position = UDim2.new(0, 75, 0, 6)
+    keybindBtn.BackgroundColor3 = GetAccentDark()
+    keybindBtn.Text = "Set Keybind"
+    keybindBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keybindBtn.Font = Enum.Font.GothamBold
+    keybindBtn.TextSize = 11
+    keybindBtn.ZIndex = 12
+    keybindBtn.AutoButtonColor = false
+    keybindBtn.Visible = false
+    Instance.new("UICorner", keybindBtn).CornerRadius = UDim.new(0, 6)
+    
+    local keybindBtnStroke = Instance.new("UIStroke", keybindBtn)
+    keybindBtnStroke.Color = GetAccentMid()
+    keybindBtnStroke.Thickness = 1
+    
+    local system = getgenv().HotkeySystem
+    local isEnabled = system.hotkeys[toggleName] and system.hotkeys[toggleName].enabled or false
+    local currentKey = system.hotkeys[toggleName] and system.hotkeys[toggleName].key or nil
+    
+    local function updateCheckVisual()
+        if isEnabled then
+            checkMark.Text = "✓"
+            keybindBtn.Visible = true
+            popup.Size = UDim2.new(0, 180, 0, 45)
+            if currentKey then
+                keybindBtn.Text = currentKey.Name
+            else
+                keybindBtn.Text = "Set Keybind"
+            end
+        else
+            checkMark.Text = ""
+            keybindBtn.Visible = false
+            popup.Size = UDim2.new(0, 100, 0, 45)
+        end
+    end
+    
+    updateCheckVisual()
+    
+    local waitingForKey = false
+    
+    toggleCheck.MouseButton1Click:Connect(function()
+        isEnabled = not isEnabled
+        
+        if not isEnabled then
+            -- Desactivar keybind
+            if currentKey then
+                onKeybindRemove(toggleName)
+                RemoveHotkeyEntry(toggleName)
+            end
+            system.hotkeys[toggleName] = nil
+            currentKey = nil
+        else
+            -- Activar pero sin key aún
+            if not system.hotkeys[toggleName] then
+                system.hotkeys[toggleName] = {
+                    name = toggleName,
+                    key = nil,
+                    enabled = true,
+                    active = false,
+                    toggleFunc = nil
+                }
+            end
+            system.hotkeys[toggleName].enabled = true
+        end
+        
+        updateCheckVisual()
+    end)
+    
+    keybindBtn.MouseButton1Click:Connect(function()
+        if waitingForKey then
+            waitingForKey = false
+            keybindBtn.Text = currentKey and currentKey.Name or "Set Keybind"
+            keybindBtn.BackgroundColor3 = GetAccentDark()
+            return
+        end
+        
+        waitingForKey = true
+        keybindBtn.Text = "..."
+        keybindBtn.BackgroundColor3 = GetAccentMid()
+        
+        local conn
+        conn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if not waitingForKey then return end
+            if input.UserInputType == Enum.UserInputType.Keyboard then
+                waitingForKey = false
+                currentKey = input.KeyCode
+                keybindBtn.Text = currentKey.Name
+                keybindBtn.BackgroundColor3 = GetAccentDark()
+                
+                -- Guardar en sistema
+                if not system.hotkeys[toggleName] then
+                    system.hotkeys[toggleName] = {}
+                end
+                system.hotkeys[toggleName].key = currentKey
+                system.hotkeys[toggleName].enabled = true
+                
+                -- Callback
+                onKeybindSet(toggleName, currentKey)
+                
+                -- Añadir al panel
+                AddHotkeyEntry(toggleName, currentKey)
+                
+                conn:Disconnect()
+            end
+        end)
+    end)
+    
+    -- Hover effects
+    keybindBtn.MouseEnter:Connect(function()
+        if not waitingForKey then
+            TweenService:Create(keybindBtn, TweenInfo.new(0.1), {BackgroundColor3 = GetAccentMid()}):Play()
+        end
+    end)
+    keybindBtn.MouseLeave:Connect(function()
+        if not waitingForKey then
+            TweenService:Create(keybindBtn, TweenInfo.new(0.1), {BackgroundColor3 = GetAccentDark()}):Play()
+        end
+    end)
+    
+    -- Cerrar al hacer click fuera
+    backdrop.MouseButton1Click:Connect(function()
+        screenGui:Destroy()
+    end)
+    
+    return popup
+end
+
+-- Exponer funciones globalmente
+getgenv().CreateKeybindPopup = CreateKeybindPopup
+getgenv().UpdateHotkeyEntry = UpdateHotkeyEntry
+getgenv().AddHotkeyEntry = AddHotkeyEntry
+getgenv().RemoveHotkeyEntry = RemoveHotkeyEntry
+getgenv().CreateHotkeyPanel = CreateHotkeyPanel
+
+function UILib:CreateUI(title)
+    local TweenService = game:GetService("TweenService")
+    local Players = game:GetService("Players")
+    local LOCAL = Players.LocalPlayer
+
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "SellingGui"
+    screenGui.Parent = LOCAL:WaitForChild("PlayerGui")
+    screenGui.ResetOnSpawn = false
+
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Parent = screenGui
+    mainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+    mainFrame.Size = UDim2.new(0, 625, 0, 400)
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Active = true
+    mainFrame.Draggable = false
+    mainFrame.BackgroundTransparency = 1
+    mainFrame.Size = UDim2.new(0, 1, 0, 1)
+
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 12)
+    mainCorner.Parent = mainFrame
+
+    -- GRADIENT OVERLAY
+    local gradientOverlay = Instance.new("Frame")
+    gradientOverlay.Name = "GradientOverlay"
+    gradientOverlay.Parent = mainFrame
+    gradientOverlay.Size = UDim2.new(1, 0, 1, 0)
+    gradientOverlay.Position = UDim2.new(0, 0, 0, 0)
+    gradientOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    gradientOverlay.BorderSizePixel = 0
+    gradientOverlay.ZIndex = 0
+    gradientOverlay.Active = false
+
+    local gradientCorner = Instance.new("UICorner")
+    gradientCorner.CornerRadius = UDim.new(0, 12)
+    gradientCorner.Parent = gradientOverlay
+
+    local bgGradient = Instance.new("UIGradient")
+    bgGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 15, 15)),
+        ColorSequenceKeypoint.new(0.4, Color3.fromRGB(18, 12, 25)),
+        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(30, 15, 45)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 20, 75))
+    })
+    bgGradient.Rotation = 90
+    bgGradient.Parent = gradientOverlay
+    RegisterGradient(bgGradient, "bg")
+
+    local stroke = Instance.new("UIStroke", mainFrame)
+    stroke.Color = GetAccentColor()
+    stroke.Thickness = 1.5
+    stroke.Transparency = 0.3
+    RegisterStroke(stroke, "normal")
+
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.Parent = mainFrame
+    shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    shadow.Position = UDim2.new(0.5, 0, 0.5, 6)
+    shadow.Size = UDim2.new(1, 20, 1, 20)
+    shadow.BackgroundTransparency = 1
+    shadow.ZIndex = -1
+    shadow.Image = "rbxassetid://1316045217"
+    shadow.ImageColor3 = GetAccentDark()
+    shadow.ImageTransparency = 0.5
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    RegisterShadow(shadow)
+
+    task.spawn(function()
+        TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 625, 0, 400)
+        }):Play()
+    end)
+
+    local dragToggle, dragStart, startPos
+    local dragSpeed = 0.5
+    local UIS = game:GetService("UserInputService")
+
+    local function updateInput(input)
+        local delta = input.Position - dragStart
+        local position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+        TweenService:Create(mainFrame, TweenInfo.new(dragSpeed), { Position = position }):Play()
+    end
+
+    local headerFrame = Instance.new("Frame")
+    headerFrame.Name = "HeaderFrame"
+    headerFrame.Parent = mainFrame
+    headerFrame.Size = UDim2.new(1, 0, 0, 50)
+    headerFrame.Position = UDim2.new(0, 0, 0, 0)
+    headerFrame.BackgroundTransparency = 1
+    headerFrame.ZIndex = 10
+
+    headerFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragToggle = true
+            dragStart = input.Position
+            startPos = mainFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragToggle = false
+                end
+            end)
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            if dragToggle then
+                updateInput(input)
+            end
+        end
+    end)
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = "TitleLabel"
+    titleLabel.Parent = mainFrame
+    titleLabel.Text = title
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Size = UDim2.new(1, 0, 0, 40)
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 22
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextYAlignment = Enum.TextYAlignment.Center
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Center
+    titleLabel.Position = UDim2.new(0, 0, 0, 0)
+    titleLabel.ZIndex = 2
+
+    local titleGradient = Instance.new("UIGradient")
+    titleGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, GetAccentLight()),
+        ColorSequenceKeypoint.new(0.5, GetAccentColor()),
+        ColorSequenceKeypoint.new(1, GetAccentDark())
+    })
+    titleGradient.Parent = titleLabel
+    RegisterGradient(titleGradient, "title")
+
+    local titleGlow = Instance.new("UIStroke")
+    titleGlow.Parent = titleLabel
+    titleGlow.Color = GetAccentColor()
+    titleGlow.Thickness = 1.5
+    titleGlow.Transparency = 0.4
+    RegisterStroke(titleGlow, "normal")
+
+    local divider = Instance.new("Frame", mainFrame)
+    divider.Size = UDim2.new(1, -32, 0, 1)
+    divider.Position = UDim2.new(0, 16, 0, 44)
+    divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    divider.BackgroundTransparency = 0.2
+    divider.BorderSizePixel = 0
+    divider.ZIndex = 2
+
+    -- MINIMIZE BUTTON - REGISTRADO EN THEME
+    local minimizeButton = Instance.new("TextButton")
+    minimizeButton.Parent = mainFrame
+    minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+    minimizeButton.Position = UDim2.new(1, -40, 0, 6)
+    minimizeButton.BackgroundColor3 = GetAccentSuperDark()
+    minimizeButton.AutoButtonColor = false
+    minimizeButton.Text = "-"
+    minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minimizeButton.Font = Enum.Font.GothamBold
+    minimizeButton.TextSize = 22
+    minimizeButton.ZIndex = 3
+    minimizeButton.BorderSizePixel = 0
+
+    local minCorner = Instance.new("UICorner", minimizeButton)
+    minCorner.CornerRadius = UDim.new(0, 6)
+
+    local minStroke = Instance.new("UIStroke", minimizeButton)
+    minStroke.Color = GetAccentMid()
+    minStroke.Thickness = 1
+    minStroke.Transparency = 0.4
+    RegisterStroke(minStroke, "mid")
+    
+    -- Registrar el minimize button
+    getgenv().ThemeRegistry.minimizeButton = minimizeButton
+
+    local isMinimized = false
+    minimizeButton.MouseButton1Click:Connect(function()
+        isMinimized = not isMinimized
+
+        local targetSize = isMinimized and UDim2.new(0, 625, 0, 40) or UDim2.new(0, 625, 0, 400)
+        minimizeButton.Text = isMinimized and "+" or "-"
+        TweenService:Create(mainFrame, TweenInfo.new(0.3), { Size = targetSize }):Play()
+
+        for _, v in ipairs(mainFrame:GetChildren()) do
+            if v ~= minimizeButton and v ~= titleLabel and v ~= mainCorner and v ~= shadow and v ~= stroke and v ~= gradientOverlay and v ~= headerFrame then
+                v.Visible = not isMinimized
+            end
+        end
+        shadow.Visible = true
+        gradientOverlay.Visible = true
+    end)
+
+    -- Contenedor para las pestañas (sidebar)
+    local tabContainerBG = Instance.new("Frame")
+    tabContainerBG.Name = "TabContainerBG"
+    tabContainerBG.Parent = mainFrame
+    tabContainerBG.Size = UDim2.new(0, 145, 1, -60)
+    tabContainerBG.Position = UDim2.new(0, 5, 0, 52)
+    tabContainerBG.BackgroundColor3 = GetAccentSuperDark()
+    getgenv().ThemeRegistry.tabContainer = tabContainerBG
+    tabContainerBG.BorderSizePixel = 0
+    tabContainerBG.ZIndex = 2
+
+    local tabContainerCorner = Instance.new("UICorner")
+    tabContainerCorner.CornerRadius = UDim.new(0, 10)
+    tabContainerCorner.Parent = tabContainerBG
+
+    local tabContainerStroke = Instance.new("UIStroke")
+    tabContainerStroke.Parent = tabContainerBG
+    tabContainerStroke.Color = GetAccentMid()
+    tabContainerStroke.Thickness = 1
+    tabContainerStroke.Transparency = 0.5
+    RegisterStroke(tabContainerStroke, "mid")
+
+    local tabScrollFrame = Instance.new("ScrollingFrame")
+    tabScrollFrame.Name = "TabScrollFrame"
+    tabScrollFrame.Parent = tabContainerBG
+    tabScrollFrame.Size = UDim2.new(1, -10, 1, -10)
+    tabScrollFrame.Position = UDim2.new(0, 5, 0, 5)
+    tabScrollFrame.BackgroundTransparency = 1
+    tabScrollFrame.ScrollBarThickness = 0
+    tabScrollFrame.ScrollBarImageTransparency = 1
+    tabScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    tabScrollFrame.BorderSizePixel = 0
+
+    local tabContainer = Instance.new("ScrollingFrame")
+    tabContainer.Name = "TabContainer"
+    tabContainer.Parent = mainFrame
+    tabContainer.Size = UDim2.new(1, -150, 1, -50)
+    tabContainer.Position = UDim2.new(0, 150, 0, 50)
+    tabContainer.BackgroundTransparency = 1
+    tabContainer.ScrollBarThickness = 0
+    tabContainer.ZIndex = 2
+    tabContainer.ScrollBarImageTransparency = 1
+    tabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+    local tabs = Instance.new("Folder")
+    tabs.Name = "Tabs"
+    tabs.Parent = tabContainer
+
+    return setmetatable({
+        GUI = screenGui,
+        MainFrame = mainFrame,
+        Tabs = tabs,
+        TabButtons = {},
+        TabScrollFrame = tabScrollFrame
+    }, { __index = UILib })
+end
+
+function UILib:Toggle()
+    self.MainFrame.Visible = not self.MainFrame.Visible
+end
+
+function UILib:AddTab(name, decalID)
+    local tab = Instance.new("ScrollingFrame")
+    tab.Name = name
+    tab.Parent = self.Tabs
+    tab.Size = UDim2.new(1, 0, 1, 0)
+    tab.BackgroundTransparency = 1
+    tab.ScrollBarThickness = 0
+    tab.ScrollBarImageTransparency = 1
+    tab.CanvasSize = UDim2.new(0, 0, 0, 0)
+    tab.Visible = false
+
+    local contentFrame = Instance.new("ScrollingFrame")
+    contentFrame.Name = "ContentFrame"
+    contentFrame.Parent = tab
+    contentFrame.Size = UDim2.new(1, 0, 1, 0)
+    contentFrame.Position = UDim2.new(0, 0, 0, 0)
+    contentFrame.BackgroundTransparency = 1
+    contentFrame.ScrollBarThickness = 4
+    contentFrame.ScrollBarImageColor3 = GetAccentColor()
+    contentFrame.ScrollBarImageTransparency = 0.3
+    contentFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    contentFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    contentFrame.ZIndex = 2
+    RegisterScrollbar(contentFrame)
+
+    local contentLayout = Instance.new("UIListLayout", contentFrame)
+    contentLayout.Padding = UDim.new(0, 8)
+    contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+    local contentPadding = Instance.new("UIPadding", contentFrame)
+    contentPadding.PaddingTop = UDim.new(0, 10)
+    contentPadding.PaddingBottom = UDim.new(0, 10)
+
+    local tabButton = Instance.new("TextButton")
+    tabButton.Name = name .. "Button"
+    tabButton.Parent = self.TabScrollFrame
+    tabButton.Text = ""
+    tabButton.Size = UDim2.new(1, -6, 0, 34)
+    tabButton.Position = UDim2.new(0, 3, 0, (#self.TabButtons * 40))
+    tabButton.BackgroundColor3 = GetAccentVeryDark()
+    tabButton.BorderSizePixel = 0
+    tabButton.ZIndex = 3
+
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 12)
+    buttonCorner.Parent = tabButton
+
+    local buttonStroke = Instance.new("UIStroke")
+    buttonStroke.Parent = tabButton
+    buttonStroke.Color = GetAccentMid()
+    buttonStroke.Thickness = 1
+    buttonStroke.Transparency = 0.4
+    RegisterStroke(buttonStroke, "mid")
+
+    local imageSize = 20
+    local tabImage = nil
+    if decalID then
+        tabImage = Instance.new("ImageLabel")
+        tabImage.Parent = tabButton
+        tabImage.Size = UDim2.new(0, imageSize, 0, imageSize)
+        tabImage.Position = UDim2.new(0, 5, 0.5, -imageSize/2)
+        tabImage.BackgroundTransparency = 1
+        tabImage.Image = "rbxassetid://" .. tostring(decalID)
+        tabImage.ImageColor3 = Color3.fromRGB(255, 255, 255)
+        tabImage.ScaleType = Enum.ScaleType.Fit
+        tabImage.ZIndex = 4
+    end
+
+    local label = Instance.new("TextLabel")
+    label.Parent = tabButton
+    label.Text = name
+    label.Size = UDim2.new(1, -45, 1, 0)
+    label.Position = UDim2.new(0, 45, 0, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 20
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextYAlignment = Enum.TextYAlignment.Center
+    label.ZIndex = 4
+
+    local tabData = { 
+        Button = tabButton, 
+        Tab = tab, 
+        isSelected = false,
+        Image = tabImage
+    }
+    table.insert(self.TabButtons, tabData)
+    table.insert(getgenv().ThemeRegistry.tabButtons, tabData)
+    
+    self.TabScrollFrame.CanvasSize = UDim2.new(0, 0, 0, #self.TabButtons * 40)
+
+    tabButton.MouseButton1Click:Connect(function()
+        for _, tabInfo in pairs(self.TabButtons) do
+            tabInfo.Tab.Visible = false
+            tabInfo.Button.BackgroundColor3 = GetAccentVeryDark()
+            tabInfo.isSelected = false
+        end
+        tab.Visible = true
+        tabButton.BackgroundColor3 = GetAccentDark()
+        tabData.isSelected = true
+    end)
+
+    if #self.TabButtons == 1 then
+        tab.Visible = true
+        tabButton.BackgroundColor3 = GetAccentDark()
+        tabData.isSelected = true
+    end
+
+    return { tab = tab, contentFrame = contentFrame }
+end
+
+function UILib:AddButton(tab, text, callback)
+    local TweenService = game:GetService("TweenService")
+
+    local buttonFrame = Instance.new("Frame")
+    buttonFrame.Parent = tab.contentFrame
+    buttonFrame.Size = UDim2.new(0.9, 0, 0, 39)
+    buttonFrame.BackgroundColor3 = GetAccentVeryDark()
+    RegisterBackground(buttonFrame, "veryDark")
+    buttonFrame.BackgroundTransparency = 0
+    buttonFrame.BorderSizePixel = 0
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = buttonFrame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = buttonFrame
+    stroke.Color = GetAccentMid()
+    stroke.Thickness = 1
+    stroke.Transparency = 0.4
+    RegisterStroke(stroke, "mid")
+
+    local scale = Instance.new("UIScale")
+    scale.Parent = buttonFrame
+
+    local button = Instance.new("TextButton")
+    button.Parent = buttonFrame
+    button.Size = UDim2.fromScale(1, 1)
+    button.BackgroundTransparency = 1
+    button.Text = ""
+    button.AutoButtonColor = false
+    button.ZIndex = 2
+
+    local label = Instance.new("TextLabel")
+    label.Parent = buttonFrame
+    label.Size = UDim2.new(0.85, 0, 1, 0)
+    label.Position = UDim2.new(0.05, 0, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local image = Instance.new("ImageLabel")
+    image.Parent = buttonFrame
+    image.Size = UDim2.new(0, 28, 0, 28)
+    image.Position = UDim2.new(0.93, 0, 0.5, -14)
+    image.BackgroundTransparency = 1
+    image.Image = "rbxassetid://10709791437"
+    image.ScaleType = Enum.ScaleType.Fit
+    image.ImageColor3 = GetAccentLight()
+    RegisterImageLabel(image, "light")
+
+    local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+    buttonFrame.MouseEnter:Connect(function()
+        TweenService:Create(buttonFrame, tweenInfo, {BackgroundColor3 = GetAccentSuperDark()}):Play()
+        TweenService:Create(stroke, tweenInfo, {Color = GetAccentColor()}):Play()
+    end)
+
+    buttonFrame.MouseLeave:Connect(function()
+        TweenService:Create(buttonFrame, tweenInfo, {BackgroundColor3 = GetAccentVeryDark()}):Play()
+        TweenService:Create(stroke, tweenInfo, {Color = GetAccentMid()}):Play()
+    end)
+
+    button.MouseButton1Click:Connect(function()
+        TweenService:Create(buttonFrame, TweenInfo.new(0.07), {BackgroundColor3 = GetAccentMid()}):Play()
+        TweenService:Create(scale, TweenInfo.new(0.07), {Scale = 1.03}):Play()
+        task.wait(0.1)
+        TweenService:Create(scale, TweenInfo.new(0.07), {Scale = 1}):Play()
+        TweenService:Create(buttonFrame, TweenInfo.new(0.07), {BackgroundColor3 = GetAccentSuperDark()}):Play()
+        if callback then
+            task.spawn(callback)
+        end
+    end)
+    return button
+end
+
+-- ═══════════════════════════════════════════════════════════════════
+-- AddToggleWithHotkey - CORREGIDO: El hotkey NO apaga el toggle principal
+-- El hotkey solo funciona si el toggle principal está ON
+-- ═══════════════════════════════════════════════════════════════════
+function UILib:AddToggleWithHotkey(tab, text, defaultState, callback, supportsHotkey)
+    local TweenService = game:GetService("TweenService")
+    local UserInputService = game:GetService("UserInputService")
+
+    local toggleFrame = Instance.new("Frame")
+    toggleFrame.Parent = tab.contentFrame
+    toggleFrame.Size = UDim2.new(0.9, 0, 0, 39)
+    toggleFrame.BackgroundColor3 = GetAccentVeryDark()
+    RegisterBackground(toggleFrame, "veryDark")
+    toggleFrame.BackgroundTransparency = 0
+    toggleFrame.BorderSizePixel = 0
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = toggleFrame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = toggleFrame
+    stroke.Color = GetAccentMid()
+    stroke.Thickness = 1
+    stroke.Transparency = 0.4
+    RegisterStroke(stroke, "mid")
+
+    local label = Instance.new("TextLabel")
+    label.Parent = toggleFrame
+    label.Size = UDim2.new(0.8, 0, 1, 0)
+    label.Position = UDim2.new(0.05, 0, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local switchTrack = Instance.new("Frame")
+    switchTrack.Parent = toggleFrame
+    switchTrack.Size = UDim2.new(0, 55, 0, 25)
+    switchTrack.Position = UDim2.new(0.85, 0, 0.5, -12)
+    switchTrack.BackgroundColor3 = GetAccentSuperDark()
+    switchTrack.BorderSizePixel = 0
+    Instance.new("UICorner", switchTrack).CornerRadius = UDim.new(1, 0)
+
+    local switchButton = Instance.new("Frame")
+    switchButton.Parent = switchTrack
+    switchButton.Size = UDim2.new(0, 20, 0, 20)
+    switchButton.Position = defaultState and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
+    switchButton.BackgroundColor3 = defaultState and GetAccentColor() or Color3.fromRGB(255, 255, 255)
+    switchButton.BorderSizePixel = 0
+    Instance.new("UICorner", switchButton).CornerRadius = UDim.new(1, 0)
+
+    local glowEffect = Instance.new("UIStroke")
+    glowEffect.Parent = switchButton
+    glowEffect.Color = switchButton.BackgroundColor3
+    glowEffect.Thickness = 2
+    glowEffect.Transparency = 0.3
+
+    local hoverTweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local clickTweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local defaultSize = toggleFrame.Size
+    local toggling = false
+
+    toggleFrame.MouseEnter:Connect(function()
+        TweenService:Create(toggleFrame, hoverTweenInfo, { BackgroundColor3 = GetAccentSuperDark() }):Play()
+    end)
+
+    toggleFrame.MouseLeave:Connect(function()
+        TweenService:Create(toggleFrame, hoverTweenInfo, { BackgroundColor3 = GetAccentVeryDark() }):Play()
+    end)
+
+    local function updateVisual()
+        local targetColor = defaultState and GetAccentColor() or Color3.fromRGB(255, 255, 255)
+        local targetPos = defaultState and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
+
+        TweenService:Create(switchButton, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Position = targetPos,
+            BackgroundColor3 = targetColor
+        }):Play()
+
+        TweenService:Create(glowEffect, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Color = targetColor
+        }):Play()
+    end
+
+    local function toggle()
+        if toggling then return end
+        toggling = true
+
+        defaultState = not defaultState
+        updateVisual()
+
+        local pressTween = TweenService:Create(toggleFrame, clickTweenInfo, { Size = UDim2.new(defaultSize.X.Scale, 0, 0, 38) })
+        pressTween:Play()
+        pressTween.Completed:Wait()
+
+        if callback then
+            task.spawn(function()
+                callback(defaultState)
+            end)
+        end
+        
+        -- Actualizar estado activo en hotkey system (para visual del panel)
+        if supportsHotkey and getgenv().HotkeySystem.hotkeys[text] then
+            getgenv().HotkeySystem.hotkeys[text].active = defaultState
+            if getgenv().UpdateHotkeyEntry then
+                getgenv().UpdateHotkeyEntry(text)
+            end
+        end
+
+        task.wait(0.1)
+        toggling = false
+    end
+
+    toggleFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            toggle()
+        elseif input.UserInputType == Enum.UserInputType.MouseButton2 and supportsHotkey then
+            -- Click derecho - abrir popup de keybind
+            if getgenv().CreateKeybindPopup then
+                getgenv().CreateKeybindPopup(
+                    toggleFrame,
+                    text,
+                    function(name, key) -- onKeybindSet
+                        local system = getgenv().HotkeySystem
+                        -- CORREGIDO: toggleFunc ahora solo ejecuta toggle() si el toggle principal está ON
+                        -- O siempre hace toggle si no tiene estado "siempre activo"
+                        system.hotkeys[name].toggleFunc = function()
+                            -- Simplemente hace toggle del estado
+                            toggle()
+                        end
+                    end,
+                    function(name) -- onKeybindRemove
+                        -- Nada especial
+                    end
+                )
+            end
+        end
+    end)
+    
+    switchTrack.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            toggle()
+        end
+    end)
+    
+    local function SetState(newState, skipCallback)
+        if newState == defaultState then return end
+        defaultState = newState
+        updateVisual()
+        
+        if supportsHotkey and getgenv().HotkeySystem.hotkeys[text] then
+            getgenv().HotkeySystem.hotkeys[text].active = defaultState
+            if getgenv().UpdateHotkeyEntry then
+                getgenv().UpdateHotkeyEntry(text)
+            end
+        end
+        
+        if not skipCallback and callback then
+            task.spawn(function()
+                callback(defaultState)
+            end)
+        end
+    end 
+    
+    local function RefreshTheme()
+        toggleFrame.BackgroundColor3 = GetAccentVeryDark()
+        switchTrack.BackgroundColor3 = GetAccentSuperDark()
+        if defaultState then
+            local accent = GetAccentColor()
+            switchButton.BackgroundColor3 = accent
+            glowEffect.Color = accent
+        end
+    end
+    
+    local function GetState()
+        return defaultState
+    end
+    
+    local toggleData = { 
+        Track = switchTrack, 
+        SetState = SetState, 
+        RefreshTheme = RefreshTheme, 
+        Frame = toggleFrame,
+        GetState = GetState,
+        Toggle = toggle
+    }
+    table.insert(getgenv().ThemeToggles, toggleData)
+    
+    return toggleData
+end
+
+function UILib:AddToggle(tab, text, defaultState, callback)
+    local TweenService = game:GetService("TweenService")
+
+    local toggleFrame = Instance.new("Frame")
+    toggleFrame.Parent = tab.contentFrame
+    toggleFrame.Size = UDim2.new(0.9, 0, 0, 39)
+    toggleFrame.BackgroundColor3 = GetAccentVeryDark()
+    RegisterBackground(toggleFrame, "veryDark")
+    toggleFrame.BackgroundTransparency = 0
+    toggleFrame.BorderSizePixel = 0
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = toggleFrame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = toggleFrame
+    stroke.Color = GetAccentMid()
+    stroke.Thickness = 1
+    stroke.Transparency = 0.4
+    RegisterStroke(stroke, "mid")
+
+    local label = Instance.new("TextLabel")
+    label.Parent = toggleFrame
+    label.Size = UDim2.new(0.8, 0, 1, 0)
+    label.Position = UDim2.new(0.05, 0, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local switchTrack = Instance.new("Frame")
+    switchTrack.Parent = toggleFrame
+    switchTrack.Size = UDim2.new(0, 55, 0, 25)
+    switchTrack.Position = UDim2.new(0.85, 0, 0.5, -12)
+    switchTrack.BackgroundColor3 = GetAccentSuperDark()
+    switchTrack.BorderSizePixel = 0
+    Instance.new("UICorner", switchTrack).CornerRadius = UDim.new(1, 0)
+
+    local switchButton = Instance.new("Frame")
+    switchButton.Parent = switchTrack
+    switchButton.Size = UDim2.new(0, 20, 0, 20)
+    switchButton.Position = defaultState and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
+    switchButton.BackgroundColor3 = defaultState and GetAccentColor() or Color3.fromRGB(255, 255, 255)
+    switchButton.BorderSizePixel = 0
+    Instance.new("UICorner", switchButton).CornerRadius = UDim.new(1, 0)
+
+    local glowEffect = Instance.new("UIStroke")
+    glowEffect.Parent = switchButton
+    glowEffect.Color = switchButton.BackgroundColor3
+    glowEffect.Thickness = 2
+    glowEffect.Transparency = 0.3
+
+    local hoverTweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local clickTweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local defaultSize = toggleFrame.Size
+    local toggling = false
+
+    toggleFrame.MouseEnter:Connect(function()
+        TweenService:Create(toggleFrame, hoverTweenInfo, { BackgroundColor3 = GetAccentSuperDark() }):Play()
+    end)
+
+    toggleFrame.MouseLeave:Connect(function()
+        TweenService:Create(toggleFrame, hoverTweenInfo, { BackgroundColor3 = GetAccentVeryDark() }):Play()
+    end)
+
+    local function updateVisual()
+        local targetColor = defaultState and GetAccentColor() or Color3.fromRGB(255, 255, 255)
+        local targetPos = defaultState and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
+
+        TweenService:Create(switchButton, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Position = targetPos,
+            BackgroundColor3 = targetColor
+        }):Play()
+
+        TweenService:Create(glowEffect, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Color = targetColor
+        }):Play()
+    end
+
+    local function toggle()
+        if toggling then return end
+        toggling = true
+
+        defaultState = not defaultState
+        updateVisual()
+
+        local pressTween = TweenService:Create(toggleFrame, clickTweenInfo, { Size = UDim2.new(defaultSize.X.Scale, 0, 0, 38) })
+        pressTween:Play()
+        pressTween.Completed:Wait()
+
+        if callback then
+            task.spawn(function()
+                callback(defaultState)
+            end)
+        end
+
+        task.wait(0.1)
+        toggling = false
+    end
+
+    toggleFrame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            toggle()
+        end
+    end)
+    
+    switchTrack.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            toggle()
+        end
+    end)
+    
+    local function SetState(newState, skipCallback)
+        if newState == defaultState then return end
+        defaultState = newState
+        updateVisual()
+        
+        if not skipCallback and callback then
+            task.spawn(function()
+                callback(defaultState)
+            end)
+        end
+    end 
+    
+    local function RefreshTheme()
+        toggleFrame.BackgroundColor3 = GetAccentVeryDark()
+        switchTrack.BackgroundColor3 = GetAccentSuperDark()
+        if defaultState then
+            local accent = GetAccentColor()
+            switchButton.BackgroundColor3 = accent
+            glowEffect.Color = accent
+        end
+    end
+    
+    local function GetState()
+        return defaultState
+    end
+    
+    local toggleData = { 
+        Track = switchTrack, 
+        SetState = SetState, 
+        RefreshTheme = RefreshTheme, 
+        Frame = toggleFrame,
+        GetState = GetState,
+        Toggle = toggle
+    }
+    table.insert(getgenv().ThemeToggles, toggleData)
+    
+    return toggleData
+end
+
+function UILib:AddExpandableToggle(tab, text, defaultState, callback, expandHeight)
+    local TweenService = game:GetService("TweenService")
+    expandHeight = expandHeight or 80
+
+    local container = Instance.new("Frame")
+    container.Parent = tab.contentFrame
+    container.Size = UDim2.new(0.9, 0, 0, 39)
+    container.BackgroundColor3 = GetAccentVeryDark()
+    container.BorderSizePixel = 0
+    container.ClipsDescendants = true
+    RegisterBackground(container, "veryDark")
+    Instance.new("UICorner", container).CornerRadius = UDim.new(0, 12)
+
+    local stroke = Instance.new("UIStroke", container)
+    stroke.Color = GetAccentMid()
+    stroke.Thickness = 1
+    stroke.Transparency = 0.4
+    RegisterStroke(stroke, "mid")
+
+    local label = Instance.new("TextLabel", container)
+    label.Size = UDim2.new(0.6, 0, 0, 39)
+    label.Position = UDim2.new(0.05, 0, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local arrow = Instance.new("TextLabel", container)
+    arrow.Size = UDim2.new(0, 20, 0, 39)
+    arrow.Position = UDim2.new(0.68, 0, 0, 0)
+    arrow.BackgroundTransparency = 1
+    arrow.Text = "▶"
+    arrow.TextColor3 = GetAccentLight()
+    arrow.Font = Enum.Font.GothamBold
+    arrow.TextSize = 12
+    RegisterLabel(arrow, "light")
+
+    local switchTrack = Instance.new("Frame", container)
+    switchTrack.Size = UDim2.new(0, 55, 0, 25)
+    switchTrack.Position = UDim2.new(0.85, 0, 0, 7)
+    switchTrack.BackgroundColor3 = GetAccentSuperDark()
+    switchTrack.BorderSizePixel = 0
+    Instance.new("UICorner", switchTrack).CornerRadius = UDim.new(1, 0)
+
+    local switchButton = Instance.new("Frame", switchTrack)
+    switchButton.Size = UDim2.new(0, 20, 0, 20)
+    switchButton.Position = defaultState and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
+    switchButton.BackgroundColor3 = defaultState and GetAccentColor() or Color3.fromRGB(255, 255, 255)
+    switchButton.BorderSizePixel = 0
+    Instance.new("UICorner", switchButton).CornerRadius = UDim.new(1, 0)
+
+    -- Botón invisible sobre el switch para capturar clicks
+    local switchClickArea = Instance.new("TextButton", container)
+    switchClickArea.Size = UDim2.new(0, 55, 0, 25)
+    switchClickArea.Position = UDim2.new(0.85, 0, 0, 7)
+    switchClickArea.BackgroundTransparency = 1
+    switchClickArea.Text = ""
+    switchClickArea.ZIndex = 10
+
+    local expandContent = Instance.new("Frame", container)
+    expandContent.Name = "ExpandContent"
+    expandContent.Size = UDim2.new(1, -20, 0, expandHeight)
+    expandContent.Position = UDim2.new(0, 10, 0, 44)
+    expandContent.BackgroundTransparency = 1
+
+    local enabled = defaultState
+    local expanded = false
+
+    local function updateSize()
+        local targetSize
+        if expanded then
+            targetSize = UDim2.new(0.9, 0, 0, 39 + expandHeight + 10)
+        else
+            targetSize = UDim2.new(0.9, 0, 0, 39)
+        end
+        arrow.Text = expanded and "▼" or "▶"
+        TweenService:Create(container, TweenInfo.new(0.2), {Size = targetSize}):Play()
+    end
+
+    local function updateVisual()
+        local targetPos = enabled and UDim2.new(1, -22, 0.5, -10) or UDim2.new(0, 2, 0.5, -10)
+        local targetColor = enabled and GetAccentColor() or Color3.fromRGB(255, 255, 255)
+        TweenService:Create(switchButton, TweenInfo.new(0.2), {Position = targetPos, BackgroundColor3 = targetColor}):Play()
+    end
+
+    local function toggle()
+        enabled = not enabled
+        updateVisual()
+        if callback then 
+            task.spawn(function()
+                callback(enabled) 
+            end)
+        end
+    end
+
+    -- Click en el switch = toggle on/off
+    switchClickArea.MouseButton1Click:Connect(function()
+        toggle()
+    end)
+
+    -- Click en el label = expandir/colapsar
+    label.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            expanded = not expanded
+            updateSize()
+        end
+    end)
+    
+    -- Click en la flecha = expandir/colapsar
+    arrow.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            expanded = not expanded
+            updateSize()
+        end
+    end)
+
+    local function RefreshTheme()
+        container.BackgroundColor3 = GetAccentVeryDark()
+        switchTrack.BackgroundColor3 = GetAccentSuperDark()
+        arrow.TextColor3 = GetAccentLight()
+        stroke.Color = GetAccentMid()
+        if enabled then
+            switchButton.BackgroundColor3 = GetAccentColor()
+        end
+    end
+
+    local toggleData = {
+        content = expandContent,
+        SetState = function(val) 
+            if val ~= enabled then
+                enabled = val 
+                updateVisual()
+                if callback then callback(enabled) end
+            end
+        end,
+        GetState = function() return enabled end,
+        Toggle = toggle,
+        RefreshTheme = RefreshTheme
+    }
+    
+    table.insert(getgenv().ThemeToggles, toggleData)
+
+    return toggleData
+end
+
+function UILib:AddColorPicker(parent, defaultColor, callback)
+    local TweenService = game:GetService("TweenService")
+    local UserInputService = game:GetService("UserInputService")
+    
+    defaultColor = defaultColor or Color3.fromRGB(0, 255, 0)
+    
+    local pickerFrame = Instance.new("Frame", parent)
+    pickerFrame.Size = UDim2.new(1, 0, 0, 150)
+    pickerFrame.BackgroundColor3 = GetAccentSuperDark()
+    pickerFrame.BorderSizePixel = 0
+    Instance.new("UICorner", pickerFrame).CornerRadius = UDim.new(0, 8)
+    RegisterBackground(pickerFrame, "superDark")
+    
+    -- Saturation/Value Canvas
+    local svCanvas = Instance.new("Frame", pickerFrame)
+    svCanvas.Name = "SVCanvas"
+    svCanvas.Size = UDim2.new(0, 130, 0, 130)
+    svCanvas.Position = UDim2.new(0, 10, 0, 10)
+    svCanvas.BackgroundColor3 = Color3.fromHSV(0, 1, 1)
+    svCanvas.BorderSizePixel = 0
+    Instance.new("UICorner", svCanvas).CornerRadius = UDim.new(0, 4)
+    
+    -- Gradiente blanco (saturation)
+    local whiteGradient = Instance.new("Frame", svCanvas)
+    whiteGradient.Size = UDim2.new(1, 0, 1, 0)
+    whiteGradient.BackgroundColor3 = Color3.new(1, 1, 1)
+    whiteGradient.BorderSizePixel = 0
+    Instance.new("UICorner", whiteGradient).CornerRadius = UDim.new(0, 4)
+    
+    local whiteUIGradient = Instance.new("UIGradient", whiteGradient)
+    whiteUIGradient.Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(1, 1, 1))
+    whiteUIGradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0),
+        NumberSequenceKeypoint.new(1, 1)
+    })
+    whiteUIGradient.Rotation = 0
+    
+    -- Gradiente negro (value)
+    local blackGradient = Instance.new("Frame", svCanvas)
+    blackGradient.Size = UDim2.new(1, 0, 1, 0)
+    blackGradient.BackgroundColor3 = Color3.new(0, 0, 0)
+    blackGradient.BorderSizePixel = 0
+    Instance.new("UICorner", blackGradient).CornerRadius = UDim.new(0, 4)
+    
+    local blackUIGradient = Instance.new("UIGradient", blackGradient)
+    blackUIGradient.Color = ColorSequence.new(Color3.new(0, 0, 0), Color3.new(0, 0, 0))
+    blackUIGradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(1, 0)
+    })
+    blackUIGradient.Rotation = 90
+    
+    -- Cursor del SV canvas
+    local svCursor = Instance.new("Frame", svCanvas)
+    svCursor.Size = UDim2.new(0, 14, 0, 14)
+    svCursor.AnchorPoint = Vector2.new(0.5, 0.5)
+    svCursor.Position = UDim2.new(1, 0, 0, 0)
+    svCursor.BackgroundColor3 = Color3.new(1, 1, 1)
+    svCursor.BorderSizePixel = 0
+    svCursor.ZIndex = 5
+    Instance.new("UICorner", svCursor).CornerRadius = UDim.new(1, 0)
+    Instance.new("UIStroke", svCursor).Color = Color3.new(0, 0, 0)
+    
+    -- Hue Slider con gradiente de arcoíris
+    local hueSlider = Instance.new("Frame", pickerFrame)
+    hueSlider.Name = "HueSlider"
+    hueSlider.Size = UDim2.new(0, 20, 0, 130)
+    hueSlider.Position = UDim2.new(0, 150, 0, 10)
+    hueSlider.BackgroundColor3 = Color3.new(1, 1, 1)
+    hueSlider.BorderSizePixel = 0
+    Instance.new("UICorner", hueSlider).CornerRadius = UDim.new(0, 4)
+    
+    -- Crear gradiente de arcoíris
+    local hueGradient = Instance.new("UIGradient", hueSlider)
+    hueGradient.Rotation = 90
+    hueGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHSV(0, 1, 1)),      -- Rojo
+        ColorSequenceKeypoint.new(0.167, Color3.fromHSV(0.167, 1, 1)), -- Amarillo
+        ColorSequenceKeypoint.new(0.333, Color3.fromHSV(0.333, 1, 1)), -- Verde
+        ColorSequenceKeypoint.new(0.5, Color3.fromHSV(0.5, 1, 1)),    -- Cyan
+        ColorSequenceKeypoint.new(0.667, Color3.fromHSV(0.667, 1, 1)), -- Azul
+        ColorSequenceKeypoint.new(0.833, Color3.fromHSV(0.833, 1, 1)), -- Magenta
+        ColorSequenceKeypoint.new(1, Color3.fromHSV(1, 1, 1))         -- Rojo
+    })
+    
+    -- Cursor del Hue
+    local hueCursor = Instance.new("Frame", hueSlider)
+    hueCursor.Size = UDim2.new(1, 4, 0, 6)
+    hueCursor.AnchorPoint = Vector2.new(0.5, 0.5)
+    hueCursor.Position = UDim2.new(0.5, 0, 0, 0)
+    hueCursor.BackgroundColor3 = Color3.new(1, 1, 1)
+    hueCursor.BorderSizePixel = 0
+    hueCursor.ZIndex = 5
+    Instance.new("UICorner", hueCursor).CornerRadius = UDim.new(0, 2)
+    Instance.new("UIStroke", hueCursor).Color = Color3.new(0, 0, 0)
+    
+    -- Preview del color
+    local preview = Instance.new("Frame", pickerFrame)
+    preview.Size = UDim2.new(0, 25, 0, 25)
+    preview.Position = UDim2.new(0, 180, 0, 10)
+    preview.BackgroundColor3 = defaultColor
+    preview.BorderSizePixel = 0
+    Instance.new("UICorner", preview).CornerRadius = UDim.new(0, 4)
+    Instance.new("UIStroke", preview).Color = Color3.new(1, 1, 1)
+    
+    local h, s, v = Color3.toHSV(defaultColor)
+    
+    local function updateColor()
+        local color = Color3.fromHSV(h, s, v)
+        svCanvas.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+        preview.BackgroundColor3 = color
+        svCursor.Position = UDim2.new(s, 0, 1 - v, 0)
+        hueCursor.Position = UDim2.new(0.5, 0, h, 0)
+        if callback then callback(color) end
+    end
+    
+    updateColor()
+    
+    local draggingSV = false
+    local draggingHue = false
+    
+    svCanvas.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingSV = true
+        end
+    end)
+    
+    blackGradient.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingSV = true
+        end
+    end)
+    
+    hueSlider.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingHue = true
+        end
+    end)
+    
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            draggingSV = false
+            draggingHue = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            if draggingSV then
+                local relX = math.clamp((input.Position.X - svCanvas.AbsolutePosition.X) / svCanvas.AbsoluteSize.X, 0, 1)
+                local relY = math.clamp((input.Position.Y - svCanvas.AbsolutePosition.Y) / svCanvas.AbsoluteSize.Y, 0, 1)
+                s = relX
+                v = 1 - relY
+                updateColor()
+            elseif draggingHue then
+                local relY = math.clamp((input.Position.Y - hueSlider.AbsolutePosition.Y) / hueSlider.AbsoluteSize.Y, 0, 1)
+                h = relY
+                updateColor()
+            end
+        end
+    end)
+    
+    return {
+        Frame = pickerFrame,
+        SetColor = function(color)
+            h, s, v = Color3.toHSV(color)
+            updateColor()
+        end,
+        GetColor = function()
+            return Color3.fromHSV(h, s, v)
+        end
+    }
+end
+
+function UILib:AddDecimalSlider(tab, text, min, max, default, step, callback)
+    local TweenService = game:GetService("TweenService")
+    
+    local sliderFrame = Instance.new("Frame")
+    sliderFrame.Parent = tab.contentFrame
+    sliderFrame.Size = UDim2.new(1, -10, 0, 40)
+    sliderFrame.BackgroundColor3 = GetAccentVeryDark()
+    sliderFrame.BorderSizePixel = 0
+    Instance.new("UICorner", sliderFrame).CornerRadius = UDim.new(0, 8)
+    RegisterBackground(sliderFrame, "veryDark")
+
+    local label = Instance.new("TextLabel", sliderFrame)
+    label.Text = text
+    label.Size = UDim2.new(0.5, 0, 0.4, 0)
+    label.Position = UDim2.new(0.05, 0, 0.1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local valueLabel = Instance.new("TextLabel", sliderFrame)
+    valueLabel.Text = tostring(default)
+    valueLabel.Size = UDim2.new(0.3, 0, 0.4, 0)
+    valueLabel.Position = UDim2.new(0.65, 0, 0.1, 0)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.TextColor3 = GetAccentLight()
+    valueLabel.Font = Enum.Font.GothamBold
+    valueLabel.TextSize = 12
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    RegisterLabel(valueLabel, "light")
+
+    local sliderBar = Instance.new("Frame", sliderFrame)
+    sliderBar.Size = UDim2.new(0.9, 0, 0.2, 0)
+    sliderBar.Position = UDim2.new(0.05, 0, 0.6, 0)
+    sliderBar.BackgroundColor3 = GetAccentSuperDark()
+    sliderBar.BorderSizePixel = 0
+    Instance.new("UICorner", sliderBar).CornerRadius = UDim.new(1, 0)
+    RegisterBackground(sliderBar, "superDark")
+
+    local fillBar = Instance.new("Frame", sliderBar)
+    fillBar.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+    fillBar.BackgroundColor3 = GetAccentColor()
+    fillBar.BorderSizePixel = 0
+    Instance.new("UICorner", fillBar).CornerRadius = UDim.new(1, 0)
+
+    local fillGradient = Instance.new("UIGradient", fillBar)
+    fillGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, GetAccentDark()),
+        ColorSequenceKeypoint.new(1, GetAccentLight())
+    })
+    RegisterGradient(fillGradient, "slider")
+
+    local currentValue = default
+    local dragging = false
+
+    local function updateSlider(input)
+        local relativeX = math.clamp((input.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
+        local rawValue = min + (max - min) * relativeX
+        currentValue = math.floor(rawValue / step + 0.5) * step
+        currentValue = math.clamp(currentValue, min, max)
+        fillBar.Size = UDim2.new((currentValue - min) / (max - min), 0, 1, 0)
+        valueLabel.Text = string.format("%.2f", currentValue)
+        callback(currentValue)
+    end
+
+    sliderBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            updateSlider(input)
+        end
+    end)
+
+    sliderBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateSlider(input)
+        end
+    end)
+
+    local function RefreshTheme()
+        sliderFrame.BackgroundColor3 = GetAccentVeryDark()
+        sliderBar.BackgroundColor3 = GetAccentSuperDark()
+        fillBar.BackgroundColor3 = GetAccentColor()
+        valueLabel.TextColor3 = GetAccentLight()
+    end
+
+    local sliderData = { Frame = sliderFrame, RefreshTheme = RefreshTheme }
+    table.insert(getgenv().ThemeSliders, sliderData)
+
+    return sliderData
+end
+function UILib:AddTextbox(tab, text, placeholderText, callback)
+    local TweenService = game:GetService("TweenService")
+
+    local textboxFrame = Instance.new("Frame")
+    textboxFrame.Parent = tab.contentFrame
+    textboxFrame.Size = UDim2.new(0.9, 0, 0, 40)
+    textboxFrame.BackgroundColor3 = GetAccentVeryDark()
+    RegisterBackground(textboxFrame, "veryDark")
+    textboxFrame.BorderSizePixel = 0
+
+    local frameCorner = Instance.new("UICorner")
+    frameCorner.CornerRadius = UDim.new(0, 12)
+    frameCorner.Parent = textboxFrame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = textboxFrame
+    stroke.Color = GetAccentMid()
+    stroke.Thickness = 1
+    stroke.Transparency = 0.4
+    RegisterStroke(stroke, "mid")
+
+    local label = Instance.new("TextLabel")
+    label.Parent = textboxFrame
+    label.Size = UDim2.new(0.4, 0, 1, 0)
+    label.Position = UDim2.new(0.05, 0, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local textbox = Instance.new("TextBox")
+    textbox.Parent = textboxFrame
+    textbox.Text = ""
+    textbox.PlaceholderText = placeholderText or "Type here"
+    textbox.PlaceholderColor3 = GetAccentLight()
+    textbox.Size = UDim2.new(0.52, 0, 0.8, 0)
+    textbox.Position = UDim2.new(0.45, 0, 0.1, 0)
+    textbox.BackgroundColor3 = GetAccentSuperDark()
+    textbox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textbox.Font = Enum.Font.Gotham
+    textbox.TextSize = 15
+    textbox.BorderSizePixel = 0
+    textbox.ClearTextOnFocus = false
+
+    local textboxCorner = Instance.new("UICorner")
+    textboxCorner.CornerRadius = UDim.new(0, 10)
+    textboxCorner.Parent = textbox
+
+    local textboxStroke = Instance.new("UIStroke")
+    textboxStroke.Parent = textbox
+    textboxStroke.Color = GetAccentMid()
+    textboxStroke.Thickness = 1
+    textboxStroke.Transparency = 0.5
+    RegisterStroke(textboxStroke, "mid")
+    
+    -- Registrar textbox para actualización de tema
+    RegisterTextbox(textbox)
+
+    textbox.Focused:Connect(function()
+        TweenService:Create(textboxStroke, TweenInfo.new(0.2), { Color = GetAccentColor(), Transparency = 0.2 }):Play()
+        TweenService:Create(textbox, TweenInfo.new(0.2), { BackgroundColor3 = GetAccentDark() }):Play()
+    end)
+
+    textbox.FocusLost:Connect(function(enterPressed)
+        TweenService:Create(textboxStroke, TweenInfo.new(0.2), { Color = GetAccentMid(), Transparency = 0.5 }):Play()
+        TweenService:Create(textbox, TweenInfo.new(0.2), { BackgroundColor3 = GetAccentSuperDark() }):Play()
+        if enterPressed then
+            callback(textbox.Text)
+        end
+    end)
+
+    return textbox
+end
+
+
+function UILib:AddSlider(tab, text, min, max, defaultValue, callback)
+    local TweenService = game:GetService("TweenService")
+    
+    local sliderFrame = Instance.new("Frame")
+    sliderFrame.Parent = tab.contentFrame
+    sliderFrame.Size = UDim2.new(0.9, 0, 0, 40)
+    sliderFrame.BackgroundColor3 = GetAccentVeryDark()
+    RegisterBackground(sliderFrame, "veryDark")
+    sliderFrame.BorderSizePixel = 0
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = sliderFrame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = sliderFrame
+    stroke.Color = GetAccentDark()
+    stroke.Thickness = 1
+    stroke.Transparency = 0.4
+    RegisterStroke(stroke, "dark")
+
+    local label = Instance.new("TextLabel")
+    label.Parent = sliderFrame
+    label.Text = text
+    label.Size = UDim2.new(0.7, 0, 0.4, 0)
+    label.Position = UDim2.new(0.09, 0, 0.1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 14
+    label.TextXAlignment = Enum.TextXAlignment.Center
+
+    local valueLabel = Instance.new("TextLabel")
+    valueLabel.Parent = sliderFrame
+    valueLabel.Text = tostring(defaultValue)
+    valueLabel.Size = UDim2.new(0.2, 0, 0.4, 0)
+    valueLabel.Position = UDim2.new(0.75, 0, 0.1, 0)
+    valueLabel.BackgroundTransparency = 1
+    valueLabel.TextColor3 = GetAccentLight()
+    valueLabel.Font = Enum.Font.GothamBold
+    valueLabel.TextSize = 14
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    RegisterLabel(valueLabel, "light")
+
+    local sliderBar = Instance.new("Frame")
+    sliderBar.Parent = sliderFrame
+    sliderBar.Size = UDim2.new(0.95, 0, 0.25, 0)
+    sliderBar.Position = UDim2.new(0.025, 0, 0.55, 0)
+    sliderBar.BackgroundColor3 = GetAccentSuperDark()
+    sliderBar.BorderSizePixel = 0
+
+    local barCorner = Instance.new("UICorner")
+    barCorner.CornerRadius = UDim.new(1, 0)
+    barCorner.Parent = sliderBar
+
+    local fillBar = Instance.new("Frame")
+    fillBar.Parent = sliderBar
+    fillBar.Size = UDim2.new((defaultValue - min) / (max - min), 0, 1, 0)
+    fillBar.BackgroundColor3 = GetAccentColor()
+    fillBar.BorderSizePixel = 0
+
+    local fillCorner = Instance.new("UICorner")
+    fillCorner.CornerRadius = UDim.new(1, 0)
+    fillCorner.Parent = fillBar
+
+    local fillGradient = Instance.new("UIGradient")
+    fillGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, GetAccentDark()),
+        ColorSequenceKeypoint.new(1, GetAccentLight())
+    })
+    fillGradient.Parent = fillBar
+    RegisterGradient(fillGradient, "slider")
+
+    local dragging = false
+
+    local function updateSlider(input)
+        local relativeX = math.clamp((input.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
+        local newValue = math.floor(min + (max - min) * relativeX)
+        fillBar.Size = UDim2.new(relativeX, 0, 1, 0)
+        valueLabel.Text = tostring(newValue)
+        callback(newValue)
+    end
+
+    sliderBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            updateSlider(input)
+        end
+    end)
+
+    sliderBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateSlider(input)
+        end
+    end)
+    
+    local function RefreshTheme()
+        stroke.Color = GetAccentDark()
+        valueLabel.TextColor3 = GetAccentLight()
+        fillBar.BackgroundColor3 = GetAccentColor()
+        sliderBar.BackgroundColor3 = GetAccentSuperDark()
+        fillGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, GetAccentDark()),
+            ColorSequenceKeypoint.new(1, GetAccentLight())
+        })
+    end
+    
+    local sliderData = { Frame = sliderFrame, RefreshTheme = RefreshTheme }
+    table.insert(getgenv().ThemeSliders, sliderData)
+    
+    return sliderData
+end
+
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+function UILib:AddBuyersTab(name, decalID)
+    local TweenService = game:GetService("TweenService")
+    local Lighting = game:GetService("Lighting")
+    local tab = self:AddTab(name, decalID)
+    
+    tab.contentFrame.ScrollingEnabled = false
+    
+    -- Destruir el UIListLayout y UIPadding del contentFrame para esta tab
+    for _, child in pairs(tab.contentFrame:GetChildren()) do
+        if child:IsA("UIListLayout") or child:IsA("UIPadding") then
+            child:Destroy()
+        end
+    end
+
+    if not getgenv().AddedBuyerIds then getgenv().AddedBuyerIds = {} end
+    if not getgenv().ApiBuyerFrames then getgenv().ApiBuyerFrames = {} end
+
+    local scrollFrame = Instance.new("ScrollingFrame")
+    scrollFrame.Parent = tab.contentFrame
+    scrollFrame.Size = UDim2.new(1, 0, 1, -55)
+    scrollFrame.Position = UDim2.new(0, 0, 0, 55)
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scrollFrame.ScrollBarThickness = 4
+    scrollFrame.ScrollBarImageColor3 = GetAccentColor()
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    RegisterScrollbar(scrollFrame)
+
+    local listLayout = Instance.new("UIListLayout", scrollFrame)
+    listLayout.Padding = UDim.new(0, 12)
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+    listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+    local addUserBox = Instance.new("TextBox")
+    addUserBox.Parent = tab.contentFrame
+    addUserBox.PlaceholderText = "Type here"
+    addUserBox.PlaceholderColor3 = GetAccentLight()
+    addUserBox.Text = ""
+    addUserBox.Size = UDim2.new(0.7, 0, 0, 36)
+    addUserBox.Position = UDim2.new(0.05, 0, 0, 10)
+    addUserBox.BackgroundColor3 = GetAccentSuperDark()
+    addUserBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    addUserBox.Font = Enum.Font.Gotham
+    addUserBox.TextSize = 16
+    addUserBox.BorderSizePixel = 0
+    Instance.new("UICorner", addUserBox).CornerRadius = UDim.new(0, 8)
+    RegisterTextbox(addUserBox)
+    
+    local addUserBoxStroke = Instance.new("UIStroke", addUserBox)
+    addUserBoxStroke.Color = GetAccentMid()
+    addUserBoxStroke.Thickness = 1
+    addUserBoxStroke.Transparency = 0.5
+    RegisterStroke(addUserBoxStroke, "mid")
+
+    addUserBox.Focused:Connect(function() 
+        TweenService:Create(addUserBoxStroke, TweenInfo.new(0.2), { Color = GetAccentColor(), Transparency = 0.2 }):Play() 
+    end)
+    addUserBox.FocusLost:Connect(function() 
+        TweenService:Create(addUserBoxStroke, TweenInfo.new(0.2), { Color = GetAccentMid(), Transparency = 0.5 }):Play() 
+    end)
+
+    local addButton = Instance.new("TextButton")
+    addButton.Parent = tab.contentFrame
+    addButton.Size = UDim2.new(0.2, 0, 0, 36)
+    addButton.Position = UDim2.new(0.77, 0, 0, 10)
+    addButton.BackgroundColor3 = GetAccentDark()
+    RegisterBackground(addButton, "dark") 
+    addButton.Text = "Add Buyer"
+    addButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    addButton.Font = Enum.Font.GothamBold
+    addButton.TextSize = 14
+    addButton.BorderSizePixel = 0
+    addButton.AutoButtonColor = false
+    Instance.new("UICorner", addButton).CornerRadius = UDim.new(0, 8)
+    
+    local addButtonStroke = Instance.new("UIStroke", addButton)
+    addButtonStroke.Color = GetAccentColor()
+    addButtonStroke.Thickness = 1
+    addButtonStroke.Transparency = 0.4
+    RegisterStroke(addButtonStroke, "normal")
+
+    addButton.MouseEnter:Connect(function() 
+        TweenService:Create(addButton, TweenInfo.new(0.15), {BackgroundColor3 = GetAccentMid()}):Play() 
+    end)
+    addButton.MouseLeave:Connect(function() 
+        TweenService:Create(addButton, TweenInfo.new(0.15), {BackgroundColor3 = GetAccentDark()}):Play() 
+    end)
+
+    local function findPlayer(text)
+        text = text:lower()
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p.Name:lower():find(text) or p.DisplayName:lower():find(text) then return p end
+        end
+    end
+
+    local function FormatNumber(n)
+        local formatted = tostring(n):reverse():gsub("(%d%d%d)", "%1."):reverse()
+        if formatted:sub(1,1) == "." then formatted = formatted:sub(2) end
+        return formatted
+    end
+
+    local function ParseGoal(str)
+        if not str or str == "" then return 0 end
+        str = tostring(str):lower():gsub("%s+", ""):gsub(",", ".")
+        local number, suffix = str:match("([%d%.]+)([kmb]?)")
+        if number then
+            local n = tonumber(number)
+            if not n then return 0 end
+            if suffix == "k" then n = n * 1e3 elseif suffix == "m" then n = n * 1e6 elseif suffix == "b" then n = n * 1e9 end
+            return math.floor(n)
+        end
+        return tonumber(str:match("([%d]+)")) or 0
+    end
+
+    local function ShowConfirmationModal(message, yesCallback, noCallback)
+        local player = game.Players.LocalPlayer
+        local accent = GetAccentColor()
+        local accentDark = GetAccentDark()
+        local accentLight = GetAccentLight()
+        
+        local blur = Instance.new("BlurEffect", Lighting)
+        blur.Size = 0
+        TweenService:Create(blur, TweenInfo.new(0.3), {Size = 24}):Play()
+
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Parent = player:WaitForChild("PlayerGui")
+        screenGui.IgnoreGuiInset = true
+        screenGui.ResetOnSpawn = false
+        screenGui.Name = "KamaikAlert"
+
+        local frame = Instance.new("Frame", screenGui)
+        frame.Size = UDim2.new(0, 320, 0, 160)
+        frame.Position = UDim2.new(0.5, -160, 0.5, -80)
+        frame.BackgroundColor3 = Color3.fromRGB(20, 15, 30)
+        frame.BorderSizePixel = 0
+        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+        Instance.new("UIStroke", frame).Color = accent
+
+        local title = Instance.new("TextLabel", frame)
+        title.Text = "⚠️ Warning"
+        title.Font = Enum.Font.GothamBold
+        title.TextSize = 22
+        title.TextColor3 = accentLight
+        title.Size = UDim2.new(1, 0, 0, 40)
+        title.BackgroundTransparency = 1
+
+        local desc = Instance.new("TextLabel", frame)
+        desc.Text = message
+        desc.Font = Enum.Font.Gotham
+        desc.TextSize = 16
+        desc.TextColor3 = Color3.fromRGB(255, 255, 255)
+        desc.Size = UDim2.new(0.9, 0, 0.4, 0)
+        desc.Position = UDim2.new(0.05, 0, 0.25, 0)
+        desc.BackgroundTransparency = 1
+        desc.TextWrapped = true
+
+        local function Close()
+            TweenService:Create(blur, TweenInfo.new(0.2), {Size = 0}):Play()
+            task.wait(0.2)
+            blur:Destroy()
+            screenGui:Destroy()
+        end
+
+        local yesBtn = Instance.new("TextButton", frame)
+        yesBtn.Text = "Yes"
+        yesBtn.BackgroundColor3 = accent
+        yesBtn.Size = UDim2.new(0.4, 0, 0, 35)
+        yesBtn.Position = UDim2.new(0.08, 0, 0.7, 0)
+        yesBtn.TextColor3 = Color3.new(1,1,1)
+        yesBtn.Font = Enum.Font.GothamBold
+        Instance.new("UICorner", yesBtn).CornerRadius = UDim.new(0, 8)
+        Instance.new("UIStroke", yesBtn).Color = accentLight
+
+        local noBtn = Instance.new("TextButton", frame)
+        noBtn.Text = "No"
+        noBtn.BackgroundColor3 = accentDark
+        noBtn.Size = UDim2.new(0.4, 0, 0, 35)
+        noBtn.Position = UDim2.new(0.52, 0, 0.7, 0)
+        noBtn.TextColor3 = Color3.new(1,1,1)
+        noBtn.Font = Enum.Font.GothamBold
+        Instance.new("UICorner", noBtn).CornerRadius = UDim.new(0, 8)
+        Instance.new("UIStroke", noBtn).Color = accent
+
+        yesBtn.MouseButton1Click:Connect(function() Close() if yesCallback then yesCallback() end end)
+        noBtn.MouseButton1Click:Connect(function() Close() if noCallback then noCallback() end end)
+    end
+
+    local function NewTarget(targetPlayer, initialGoal, initialPending, isRestoring)
+        local oderId = targetPlayer.UserId
+        
+        if getgenv().AddedBuyerIds[oderId] then return nil end
+        getgenv().AddedBuyerIds[oderId] = true
+        
+        local frame = Instance.new("Frame", scrollFrame)
+        frame.Size = UDim2.new(0.95, 0, 0, 115)
+        frame.BackgroundColor3 = GetAccentVeryDark()
+        RegisterBackground(frame, "veryDark")
+        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+        
+        local frameStroke = Instance.new("UIStroke", frame)
+        frameStroke.Color = GetAccentMid()
+        frameStroke.Thickness = 1
+        frameStroke.Transparency = 0.5
+        RegisterStroke(frameStroke, "mid")
+        
+        if initialGoal and initialGoal > 0 and not isRestoring then
+            getgenv().ApiBuyerFrames[oderId] = frame
+        end
+
+        local thumb = Instance.new("ImageLabel", frame)
+        thumb.Size = UDim2.new(0, 70, 0, 70)
+        thumb.Position = UDim2.new(0, 10, 0, 10)
+        thumb.BackgroundTransparency = 1
+        Instance.new("UICorner", thumb).CornerRadius = UDim.new(1, 0)
+        task.spawn(function()
+            thumb.Image = Players:GetUserThumbnailAsync(targetPlayer.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+        end)
+
+        local checkmark = Instance.new("ImageLabel")
+        checkmark.Parent = thumb
+        checkmark.Image = "rbxassetid://136568734138545"
+        checkmark.Size = UDim2.new(0, 55, 0, 55)
+        checkmark.Position = UDim2.new(0, 10, 0, 10)
+        checkmark.BackgroundTransparency = 1
+        checkmark.Visible = false
+
+        local nameLabel = Instance.new("TextLabel", frame)
+        nameLabel.Text = targetPlayer.DisplayName .. " (@" .. targetPlayer.Name .. ")"
+        nameLabel.Position = UDim2.new(0, 90, 0, 10)
+        nameLabel.Size = UDim2.new(0.6, 0, 0, 25)
+        nameLabel.Font = Enum.Font.GothamBold
+        nameLabel.TextSize = 17
+        nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+        local currencyValue = targetPlayer:WaitForChild("DataFolder"):WaitForChild("Currency")
+        local startCurrency = currencyValue.Value
+        local earnedSoFar = initialPending or 0 
+        
+        if isRestoring then
+            earnedSoFar = initialPending
+            startCurrency = currencyValue.Value
+        elseif initialGoal and initialGoal > 0 then
+            startCurrency = currencyValue.Value - earnedSoFar
+        end
+
+        local currentLabel = Instance.new("TextLabel", frame)
+        currentLabel.Text = "Loading..."
+        currentLabel.Position = UDim2.new(0, 90, 0, 35)
+        currentLabel.Size = UDim2.new(0.5, 0, 0, 20)
+        currentLabel.Font = Enum.Font.GothamBold
+        currentLabel.TextSize = 14
+        currentLabel.TextColor3 = Color3.fromRGB(120, 255, 180)
+        currentLabel.BackgroundTransparency = 1
+        currentLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+        local remainingLabel = Instance.new("TextLabel", frame)
+        remainingLabel.Text = "Remaining: -"
+        remainingLabel.Position = UDim2.new(0, 90, 0, 55)
+        remainingLabel.Size = UDim2.new(0.5, 0, 0, 18)
+        remainingLabel.Font = Enum.Font.Gotham
+        remainingLabel.TextSize = 12
+        remainingLabel.TextColor3 = GetAccentLight()
+        remainingLabel.BackgroundTransparency = 1
+        remainingLabel.TextXAlignment = Enum.TextXAlignment.Left
+        RegisterLabel(remainingLabel, "light")
+
+        local goalBox = Instance.new("TextBox", frame)
+        goalBox.Text = ""
+        goalBox.PlaceholderText = "Set goal..."
+        goalBox.Size = UDim2.new(0, 240, 0, 28)
+        goalBox.Position = UDim2.new(0, 90, 0, 75)
+        goalBox.BackgroundColor3 = GetAccentSuperDark()
+        goalBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+        goalBox.Font = Enum.Font.Gotham
+        goalBox.TextSize = 14
+        Instance.new("UICorner", goalBox).CornerRadius = UDim.new(0, 6)
+        RegisterTextbox(goalBox)
+        
+        local goalBoxStroke = Instance.new("UIStroke", goalBox)
+        goalBoxStroke.Color = GetAccentMid()
+        goalBoxStroke.Thickness = 1
+        goalBoxStroke.Transparency = 0.5
+        RegisterStroke(goalBoxStroke, "mid")
+        
+        local removeBtn = Instance.new("ImageButton", frame)
+        removeBtn.Size = UDim2.new(0, 23, 0, 23)
+        removeBtn.Position = UDim2.new(1, -30, 0, 5)
+        removeBtn.BackgroundTransparency = 1
+        removeBtn.Image = "rbxassetid://112950838956740"
+
+        local isFromAPI = (initialGoal and initialGoal > 0 and not isRestoring)
+        if isFromAPI then removeBtn.Visible = false end
+        
+        removeBtn.MouseButton1Click:Connect(function()
+            if not isFromAPI then
+                if getgenv().ManualClientsCache then
+                    getgenv().ManualClientsCache[oderId] = nil
+                end
+            end
+            
+            getgenv().AddedBuyerIds[oderId] = nil
+            if getgenv().ApiBuyerFrames[oderId] then getgenv().ApiBuyerFrames[oderId] = nil end
+            frame:Destroy()
+        end)
+
+        local goalValue = 0
+        local goalSent = false
+
+        if isRestoring and initialGoal then
+            goalValue = initialGoal
+            goalBox.Text = FormatNumber(goalValue)
+        elseif isFromAPI then
+            goalValue = initialGoal
+            goalBox.Text = FormatNumber(goalValue)
+            goalBox.TextEditable = false 
+        end
+
+        local TextService = game:GetService("TextService")
+        local goalStartCurrency = currencyValue.Value
+        
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name = "BuyerBillboard"
+        billboard.Adornee = nil
+        billboard.AlwaysOnTop = true
+        billboard.Size = UDim2.new(0, 220, 0, 50)
+        billboard.StudsOffset = Vector3.new(0, 3, 0)
+        billboard.LightInfluence = 0
+        billboard.MaxDistance = 150
+        billboard.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+        local billboardFrame = Instance.new("Frame", billboard)
+        billboardFrame.Size = UDim2.new(1, 0, 1, 0)
+        billboardFrame.BackgroundColor3 = GetAccentVeryDark()
+        billboardFrame.BackgroundTransparency = 0.15
+        billboardFrame.BorderSizePixel = 0
+        Instance.new("UICorner", billboardFrame).CornerRadius = UDim.new(0, 10)
+        RegisterBackground(billboardFrame, "veryDark")
+
+        local billboardStroke = Instance.new("UIStroke", billboardFrame)
+        billboardStroke.Color = GetAccentColor()
+        billboardStroke.Thickness = 1.5
+        billboardStroke.Transparency = 0.3
+        RegisterStroke(billboardStroke, "normal")
+
+        local billboardThumb = Instance.new("ImageLabel", billboardFrame)
+        billboardThumb.Size = UDim2.new(0, 36, 0, 36)
+        billboardThumb.Position = UDim2.new(0, 8, 0.5, -18)
+        billboardThumb.BackgroundColor3 = GetAccentSuperDark()
+        billboardThumb.BorderSizePixel = 0
+        Instance.new("UICorner", billboardThumb).CornerRadius = UDim.new(1, 0)
+        RegisterBackground(billboardThumb, "superDark")
+
+        task.spawn(function()
+            local content = Players:GetUserThumbnailAsync(
+                targetPlayer.UserId,
+                Enum.ThumbnailType.HeadShot,
+                Enum.ThumbnailSize.Size100x100
+            )
+            billboardThumb.Image = content
+        end)
+
+        local billboardLabel = Instance.new("TextLabel", billboardFrame)
+        billboardLabel.Size = UDim2.new(1, -56, 1, 0)
+        billboardLabel.Position = UDim2.new(0, 50, 0, 0)
+        billboardLabel.BackgroundTransparency = 1
+        billboardLabel.Font = Enum.Font.GothamBold
+        billboardLabel.TextSize = 16
+        billboardLabel.TextXAlignment = Enum.TextXAlignment.Left
+        billboardLabel.RichText = true
+        billboardLabel.Text = '<font color="#FFFFFF">$0</font> / <font color="#808080">$0</font>'
+        
+        local function updateBillboard()
+            local current = currencyValue.Value
+            local displayText = ""
+            local accentHex = string.format("%02X%02X%02X", 
+                math.floor(GetAccentColor().R * 255), 
+                math.floor(GetAccentColor().G * 255), 
+                math.floor(GetAccentColor().B * 255)
+            )
+            
+            if goalValue > 0 then
+                local goalTotal = goalStartCurrency + goalValue
+                local reachedGoal = earnedSoFar >= goalValue
+                
+                if reachedGoal then
+                    -- Meta alcanzada: tema / tema
+                    displayText = '<font color="#'..accentHex..'">$' .. FormatNumber(current) .. '</font> / <font color="#'..accentHex..'">$' .. FormatNumber(goalTotal) .. '</font>'
+                else
+                    -- Sin alcanzar: blanco / tema
+                    displayText = '<font color="#FFFFFF">$' .. FormatNumber(current) .. '</font> / <font color="#'..accentHex..'">$' .. FormatNumber(goalTotal) .. '</font>'
+                end
+            else
+                -- Sin goal: blanco / gris
+                displayText = '<font color="#FFFFFF">$' .. FormatNumber(current) .. '</font> / <font color="#808080">-</font>'
+            end
+            
+            billboardLabel.Text = displayText
+            
+            local plainText = "$" .. FormatNumber(current) .. " / "
+            if goalValue > 0 then
+                plainText = plainText .. "$" .. FormatNumber(goalStartCurrency + goalValue)
+            else
+                plainText = plainText .. "-"
+            end
+            
+            local textSize = TextService:GetTextSize(plainText, 16, Enum.Font.GothamBold, Vector2.new(1000, 50))
+            local newWidth = math.max(textSize.X + 70, 150)
+            
+            billboard.Size = UDim2.new(0, newWidth, 0, 50)
+        end
+
+        local function attachBillboard()
+            if targetPlayer.Character then
+                local head = targetPlayer.Character:FindFirstChild("Head")
+                if head then
+                    billboard.Adornee = head
+                end
+            end
+        end
+
+        attachBillboard()
+        targetPlayer.CharacterAdded:Connect(function(char)
+            task.wait(0.5)
+            attachBillboard()
+        end)
+        updateBillboard()
+
+        frame.Destroying:Connect(function()
+            billboard:Destroy()
+        end)
+
+        local function updateLabels()
+            local current = currencyValue.Value
+            local diff = current - startCurrency
+            
+            if diff > 0 then
+                earnedSoFar = earnedSoFar + diff
+                startCurrency = current
+                
+                if not isFromAPI and goalValue > 0 then
+                    if getgenv().UpdateManualCache then
+                        getgenv().UpdateManualCache(oderId, goalValue, earnedSoFar)
+                    end
+                end
+           
+                if isFromAPI and getgenv().ActualizarClienteAPI then
+                     getgenv().ActualizarClienteAPI(script_key, oderId, earnedSoFar)
+                end
+            end
+            
+            if diff < 0 then startCurrency = current end
+
+            currentLabel.Text = "Current DHC: $" .. FormatNumber(current)
+            if goalValue > 0 then
+                local remaining = math.max(goalValue - earnedSoFar, 0)
+                remainingLabel.Text = "Remaining: $" .. FormatNumber(remaining)
+                if remaining == 0 and not goalSent then
+                    goalSent = true
+                    if isFromAPI then removeBtn.Visible = true end
+                    -- CORREGIDO: Verificar que Shouts existe antes de usarlo
+                    local shouts = getgenv().AutofarmSettings and getgenv().AutofarmSettings.Shouts
+                    local msg = (shouts and shouts["Goal reached"]) or "Goal Reached {buyer}!"
+                    game.ReplicatedStorage.MainEvent:FireServer("Shout", msg:gsub("{buyer}", "@"..targetPlayer.Name))
+                end
+            else
+                remainingLabel.Text = "Remaining: -"
+            end
+            updateBillboard()
+        end
+
+        currencyValue:GetPropertyChangedSignal("Value"):Connect(updateLabels)
+        updateLabels()
+
+        goalBox.FocusLost:Connect(function(enter)
+            local newParsed = ParseGoal(goalBox.Text)
+            
+            if goalValue > 0 and earnedSoFar > 40000 and newParsed ~= goalValue and newParsed > 0 then
+                ShowConfirmationModal(
+                    "This client has collected $"..FormatNumber(earnedSoFar)..". Are you sure you want to change the goal?",
+                    function()
+                        goalValue = newParsed
+                        goalBox.Text = FormatNumber(goalValue)
+                        if not isFromAPI and getgenv().UpdateManualCache then
+                            getgenv().UpdateManualCache(oderId, goalValue, earnedSoFar)
+                        end
+                        updateLabels()
+                    end,
+                    function()
+                        goalBox.Text = FormatNumber(goalValue)
+                    end
+                )
+                return
+            end
+
+            if newParsed > 0 then
+                goalValue = newParsed
+                goalBox.Text = FormatNumber(goalValue)
+                if not isFromAPI and getgenv().UpdateManualCache then
+                    getgenv().UpdateManualCache(oderId, goalValue, earnedSoFar)
+                end
+                if not goalSent and not isRestoring then
+                    -- CORREGIDO: Verificar que Shouts existe
+                    local shouts = getgenv().AutofarmSettings and getgenv().AutofarmSettings.Shouts
+                    local msg = (shouts and shouts["Goal Set"]) or "Goal set for {buyer}"
+                    game.ReplicatedStorage.MainEvent:FireServer("Shout", msg:gsub("{buyer}", "@"..targetPlayer.Name))
+                end
+            else
+                goalValue = 0
+            end
+            updateLabels()
+        end)
+
+        task.spawn(function()
+            while frame.Parent do
+                if goalValue > 0 then
+                    local remaining = math.max(goalValue - earnedSoFar, 0)
+
+                    if not goalSent and remaining == 0 then
+                        goalSent = true
+                        checkmark.Visible = true
+
+                        -- Enviar vouch via API
+                        task.spawn(function()
+                            local webhookURL = getgenv().AutofarmSettings and getgenv().AutofarmSettings.Webhooks and getgenv().AutofarmSettings.Webhooks.Proofs
+                            
+                            if webhookURL and webhookURL ~= "" then
+                                local requestFunc = request or http_request or (syn and syn.request)
+                                if not requestFunc then return end
+                                
+                                -- Obtener thumbnail
+                                local avatarUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. tostring(targetPlayer.UserId) .. "&width=420&height=420"
+                                pcall(function()
+                                    local res = requestFunc({
+                                        Url = "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" .. tostring(targetPlayer.UserId) .. "&size=420x420&format=Png",
+                                        Method = "GET",
+                                        Timeout = 5
+                                    })
+                                    if res and res.StatusCode == 200 then
+                                        local thumbData = HttpService:JSONDecode(res.Body)
+                                        if thumbData.data and thumbData.data[1] and thumbData.data[1].imageUrl then
+                                            avatarUrl = thumbData.data[1].imageUrl
+                                        end
+                                    end
+                                end)
+                                
+                                -- Payload para la API
+                                local payload = {
+                                    webhook = webhookURL,
+                                    IDclient = tostring(targetPlayer.UserId),
+                                    client = targetPlayer.Name,
+                                    total = goalValue,
+                                    dhcfinal = goalStartCurrency + goalValue,
+                                    dhcusuario = currencyValue.Value,
+                                    thumbnail = avatarUrl,
+                                    key = script_key
+                                }
+                                
+                                -- Multi-mode: agregar seller info
+                                if getgenv().KamaikMode == "multi" then
+                                    if getgenv().KamaikSellerName then
+                                        payload.sellerName = getgenv().KamaikSellerName
+                                    end
+                                    if getgenv().KamaikSellerDiscordId then
+                                        payload.sellerDiscordId = getgenv().KamaikSellerDiscordId
+                                    end
+                                end
+                                
+                                -- Enviar a la API
+                                pcall(function()
+                                    requestFunc({
+                                        Url = "https://kamaik-autofarm.uk/api/vouch/send",
+                                        Method = "POST",
+                                        Headers = {["Content-Type"] = "application/json"},
+                                        Body = HttpService:JSONEncode(payload)
+                                    })
+                                end)
+                            end
+                        end)
+                        -- Si era cliente de API, llamar a /api/clientes/delete
+                        if initialGoal and initialGoal > 0 then
+                            pcall(function()
+                                local requestFunc = request or http_request or (syn and syn.request)
+                                if requestFunc then
+                                    requestFunc({
+                                        Url = "https://kamaik-autofarm.uk/api/clientes/delete",
+                                        Method = "POST",
+                                        Headers = {["Content-Type"] = "application/json"},
+                                        Body = HttpService:JSONEncode({
+                                            key = script_key,
+                                            userId = targetPlayer.UserId
+                                        })
+                                    })
+                                end
+                            end)
+                        end
+                        if getgenv().AddGoalLog then
+                            getgenv().AddGoalLog(targetPlayer, goalValue, earnedSoFar)
+                        end
+
+                        local goalReachedMsg =
+                            getgenv().AutofarmSettings.Shouts["Goal reached"]
+                            or "Thank you {buyer}, please leave and make sure to vouch!"
+
+                        goalReachedMsg = goalReachedMsg:gsub("{buyer}", "@" .. targetPlayer.Name)
+
+                        game.ReplicatedStorage:WaitForChild("MainEvent"):FireServer("Shout", goalReachedMsg)
+
+                        if getgenv().BringOnGoalFinished then
+                            game.ReplicatedStorage:WaitForChild("MainEvent"):FireServer("VIP_CMD", "Summon", targetPlayer)
+                        end
+
+                        if getgenv().bringlocationgoalreached then
+                            local vaultPosition = Vector3.new(-679.0545, -31.0067, -285.0799)
+                            local lp = game.Players.LocalPlayer
+
+                            if not lp.Character then
+                                lp.CharacterAdded:Wait()
+                            end
+
+                            local hrp = lp.Character:FindFirstChild("HumanoidRootPart")
+                            if not hrp then
+                                lp.Character:WaitForChild("HumanoidRootPart")
+                                hrp = lp.Character.HumanoidRootPart
+                            end
+
+                            local originalPos = hrp.CFrame
+
+                            hrp.CFrame = CFrame.new(vaultPosition)
+
+                            task.wait(0.1)
+
+                            game.ReplicatedStorage:WaitForChild("MainEvent"):FireServer("VIP_CMD", "Summon", getgenv().targetPlayer)
+
+                            task.wait(0.3)
+
+                            hrp.CFrame = originalPos
+                        end
+
+                        if getgenv().KickOnGoalReached then
+                            task.delay(3, function()
+                                game.ReplicatedStorage:WaitForChild("MainEvent"):FireServer("VIP_CMD", "Kick", targetPlayer)
+                            end)
+                        end
+                    end
+                end
+
+                updateLabels()
+                task.wait(1)
+            end
+        end)
+
+        local btnContainer = Instance.new("Frame", frame)
+        btnContainer.Position = UDim2.new(0, 340, 0, 35)
+        btnContainer.Size = UDim2.new(0, 62, 0, 62)
+        btnContainer.BackgroundTransparency = 1
+        local layout = Instance.new("UIGridLayout", btnContainer)
+        layout.CellSize = UDim2.new(0, 28, 0, 28)
+        layout.CellPadding = UDim2.new(0, 6, 0, 6)
+
+        local function makeBtn(icon, func)
+            local b = Instance.new("ImageButton", btnContainer)
+            b.Image = icon
+            b.BackgroundColor3 = GetAccentDark()
+            Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
+            RegisterBackground(b, "dark")
+            b.MouseButton1Click:Connect(func)
+        end
+
+        makeBtn("rbxassetid://128816882886576", function()
+            if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+            end
+        end)
+        makeBtn("rbxassetid://82483452806105", function()
+             game.ReplicatedStorage.MainEvent:FireServer("VIP_CMD", "Summon", targetPlayer)
+        end)
+        makeBtn("rbxassetid://92434223807847", function()
+            ShowConfirmationModal("Are you sure you want to kick @"..targetPlayer.Name.."?", function()
+                 game.ReplicatedStorage.MainEvent:FireServer("VIP_CMD", "Kick", targetPlayer)
+            end)
+        end)
+
+        local removingConn
+        removingConn = Players.PlayerRemoving:Connect(function(p)
+            if p == targetPlayer then
+                if isFromAPI then
+                    getgenv().AddedBuyerIds[oderId] = nil
+                    if getgenv().ApiBuyerFrames[oderId] then getgenv().ApiBuyerFrames[oderId] = nil end
+                    frame:Destroy()
+                end
+                removingConn:Disconnect()
+            end
+        end)
+    end
+    
+    Players.PlayerAdded:Connect(function(player)
+        task.wait(1.5)
+        if getgenv().ManualClientsCache and getgenv().ManualClientsCache[player.UserId] then
+            local cached = getgenv().ManualClientsCache[player.UserId]
+            if cached.goal and cached.goal > 0 then
+                NewTarget(player, cached.goal, cached.earned, true)
+            end
+        end
+    end)
+    
+    getgenv().AutoAddBuyerWithGoal = function(targetPlayer, goalAmount, pendingAmount)
+        return NewTarget(targetPlayer, goalAmount, pendingAmount, false)
+    end
+
+    addButton.MouseButton1Click:Connect(function()
+        local targetPlayer = findPlayer(addUserBox.Text)
+        if targetPlayer then
+            if targetPlayer == game.Players.LocalPlayer then
+                addUserBox.Text = ""
+                addUserBox.PlaceholderText = "Cannot add self!"
+                task.wait(2) addUserBox.PlaceholderText = "Type here"
+                return
+            end
+            
+            local isAlt = false
+            if getgenv().AutofarmSettings and getgenv().AutofarmSettings.Alts then
+                for _, id in pairs(getgenv().AutofarmSettings.Alts) do
+                    if targetPlayer.UserId == id then isAlt = true break end
+                end
+            end
+            
+            if isAlt then
+                addUserBox.Text = ""
+                addUserBox.PlaceholderText = "Cannot add Alt!"
+                task.wait(2) addUserBox.PlaceholderText = "Type here"
+                return
+            end
+
+            if not getgenv().AddedBuyerIds[targetPlayer.UserId] then
+                NewTarget(targetPlayer)
+                addUserBox.Text = ""
+            else
+                addUserBox.Text = ""
+                addUserBox.PlaceholderText = "Already Added!"
+                task.wait(2) addUserBox.PlaceholderText = "Type here"
+            end
+        else
+            addUserBox.PlaceholderText = "Not Found"
+            task.wait(2) addUserBox.PlaceholderText = "Type here"
+        end
+    end)
+end
+
+function UILib:AddStats(name, decalID)
+    local tab = self:AddTab(name, decalID)
+    local Players = game:GetService("Players")
+
+    local function formatNumberWithDots(number)
+        local formatted = tostring(math.floor(number))
+        while true do
+            formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", "%1.%2")
+            if k == 0 then break end
+        end
+        return formatted
+    end
+
+    local screenFrame = Instance.new("Frame")
+    screenFrame.Parent = tab.contentFrame
+    screenFrame.Size = UDim2.new(1, 0, 1, -50)
+    screenFrame.Position = UDim2.new(0, 0, 0, 50)
+    screenFrame.BackgroundTransparency = 1
+
+    local function createStatFrame(titleText, color1, color2)
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 200, 0, 80)
+        frame.BackgroundColor3 = GetAccentVeryDark()
+        RegisterBackground(frame, "veryDark")
+        frame.BorderSizePixel = 0
+        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+
+        local frameStroke = Instance.new("UIStroke", frame)
+        frameStroke.Color = GetAccentMid()
+        frameStroke.Thickness = 1
+        frameStroke.Transparency = 0.4
+        RegisterStroke(frameStroke, "mid")
+
+        local shadow = Instance.new("ImageLabel")
+        shadow.Name = "Shadow"
+        shadow.Parent = frame
+        shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+        shadow.Position = UDim2.new(0.5, 0, 0.5, 6)
+        shadow.Size = UDim2.new(1, 15, 1, 15)
+        shadow.BackgroundTransparency = 1
+        shadow.Image = "rbxassetid://1316045217"
+        shadow.ImageColor3 = GetAccentDark()
+        shadow.ImageTransparency = 0.5
+        shadow.ZIndex = -1
+        shadow.ScaleType = Enum.ScaleType.Slice
+        shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+        RegisterShadow(shadow)
+
+        local title = Instance.new("TextLabel")
+        title.Parent = frame
+        title.BackgroundTransparency = 1
+        title.Position = UDim2.new(0.07, 0, 0.1, 0)
+        title.Size = UDim2.new(0.85, 0, 0, 24)
+        title.Font = Enum.Font.GothamBold
+        title.Text = titleText
+        title.TextColor3 = Color3.fromRGB(255, 255, 255)
+        title.TextScaled = true
+        title.TextWrapped = true
+
+        local grad = Instance.new("UIGradient")
+        grad.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, color1), ColorSequenceKeypoint.new(1, color2)})
+        grad.Rotation = -90
+        grad.Parent = title
+
+        local valueLabel = Instance.new("TextLabel")
+        valueLabel.Parent = frame
+        valueLabel.BackgroundTransparency = 1
+        valueLabel.Position = UDim2.new(0.1, 0, 0.55, 0)
+        valueLabel.Size = UDim2.new(0.8, 0, 0, 27)
+        valueLabel.Font = Enum.Font.GothamBold
+        valueLabel.Text = "$0"
+        valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        valueLabel.TextScaled = true
+        valueLabel.TextWrapped = true
+
+        frame.Parent = screenFrame
+        return frame, valueLabel
+    end
+
+    local stockFrame, stockLabel = createStatFrame("Alts Stock:", Color3.fromRGB(38, 255, 0), Color3.fromRGB(255, 255, 255))
+    local bountyFrame, bountyLabel = createStatFrame("Alts Bounty:", Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 255, 255))
+    local totalAltsFrame, totalAltsLabel = createStatFrame("Total Alts:", Color3.fromRGB(0, 115, 255), Color3.fromRGB(255, 255, 255))
+    local buyersFrame, buyersLabel = createStatFrame("Total Buyers:", Color3.fromRGB(251, 255, 0), Color3.fromRGB(255, 255, 255))
+
+    stockFrame.Position = UDim2.new(0.25, -100, 0.03, 0)
+    bountyFrame.Position = UDim2.new(0.75, -100, 0.03, 0)
+    totalAltsFrame.Position = UDim2.new(0.25, -100, 0.35, 0)
+    buyersFrame.Position = UDim2.new(0.75, -100, 0.35, 0)
+
+    task.spawn(function()
+        while task.wait(1) do
+            local buyersCount = 0
+            local altStock = 0
+            local totalAlts = 0
+            local totalBounty = 0
+
+            for _, player in ipairs(Players:GetPlayers()) do
+                local isAlt = false
+                for _, altId in pairs(getgenv().AutofarmSettings.Alts or {}) do
+                    if player.UserId == altId then
+                        isAlt = true
+                        totalAlts += 1
+                        local dataFolder = player:FindFirstChild("DataFolder")
+                        local currency = dataFolder and dataFolder:FindFirstChild("Currency")
+                        if currency then altStock += currency.Value end
+                        local leaderstats = player:FindFirstChild("leaderstats")
+                        local wanted = leaderstats and leaderstats:FindFirstChild("Wanted")
+                        if wanted then totalBounty += wanted.Value end
+                        break
+                    end
+                end
+                if not isAlt then buyersCount += 1 end
+            end
+
+            buyersCount = math.max(buyersCount - 1, 0)
+            buyersLabel.Text = tostring(buyersCount)
+            stockLabel.Text = "$" .. formatNumberWithDots(altStock)
+            totalAltsLabel.Text = tostring(totalAlts)
+            bountyLabel.Text = formatNumberWithDots(totalBounty)
+        end
+    end)
+end
+
+function UILib:AddLogs(name, decalID)
+    local tab = self:AddTab(name, decalID)
+
+    tab.contentFrame.ScrollingEnabled = false
+    
+    local Players = game:GetService("Players")
+    local TweenService = game:GetService("TweenService")
+    local Lighting = game:GetService("Lighting")
+
+    local scrollingFrame = Instance.new("ScrollingFrame")
+    scrollingFrame.Parent = tab.contentFrame
+    scrollingFrame.Size = UDim2.new(1, 0, 1, -40)
+    scrollingFrame.Position = UDim2.new(0, 0, 0, 30)
+    scrollingFrame.BackgroundTransparency = 1
+    scrollingFrame.ScrollBarThickness = 4
+    scrollingFrame.ScrollBarImageColor3 = GetAccentColor()
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    RegisterScrollbar(scrollingFrame)
+
+    local listLayout = Instance.new("UIListLayout", scrollingFrame)
+    listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    listLayout.Padding = UDim.new(0, 10)
+    listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
+    local padding = Instance.new("UIPadding", scrollingFrame)
+    padding.PaddingTop = UDim.new(0, 3)
+
+    local function createProofPopup(player, goalAmount, finalAmount)
+        local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+        local accent = GetAccentColor()
+        local accentDark = GetAccentDark()
+        local accentLight = GetAccentLight()
+
+        local blur = Instance.new("BlurEffect")
+        blur.Size = 16
+        blur.Parent = Lighting
+
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "ProofPopupGui"
+        screenGui.IgnoreGuiInset = true
+        screenGui.ResetOnSpawn = false
+        screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+        screenGui.Parent = playerGui
+
+        local popup = Instance.new("Frame")
+        popup.Parent = screenGui
+        popup.Size = UDim2.new(0, 300, 0, 100)
+        popup.Position = UDim2.new(0.5, -150, 0.5, -60)
+        popup.BackgroundColor3 = Color3.fromRGB(25, 18, 35)
+        popup.BorderSizePixel = 0
+        popup.Active = true
+        popup.Draggable = false
+        popup.BackgroundTransparency = 1
+        popup.ZIndex = 1000
+
+        Instance.new("UICorner", popup).CornerRadius = UDim.new(0, 12)
+
+        local popupStroke = Instance.new("UIStroke", popup)
+        popupStroke.Color = accent
+        popupStroke.Thickness = 1
+        popupStroke.Transparency = 0.4
+
+        local shadow = Instance.new("ImageLabel")
+        shadow.Name = "Shadow"
+        shadow.Parent = popup
+        shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+        shadow.Position = UDim2.new(0.5, 0, 0.5, 4)
+        shadow.Size = UDim2.new(1, 18, 1, 18)
+        shadow.BackgroundTransparency = 1
+        shadow.Image = "rbxassetid://1316045217"
+        shadow.ImageColor3 = accentDark
+        shadow.ImageTransparency = 0.7
+        shadow.ZIndex = 0
+
+        task.spawn(function()
+            for i = 1, 10 do
+                popup.BackgroundTransparency = 1 - (i / 10)
+                task.wait(0.02)
+            end
+        end)
+
+        local close = Instance.new("TextButton")
+        close.Parent = popup
+        close.Size = UDim2.new(0, 20, 0, 20)
+        close.Position = UDim2.new(1, -32, 0, 8)
+        close.BackgroundColor3 = Color3.fromRGB(255, 50, 80)
+        close.Text = "X"
+        close.Font = Enum.Font.GothamBold
+        close.TextColor3 = Color3.new(1, 1, 1)
+        close.TextSize = 14
+        close.ZIndex = 1001
+        Instance.new("UICorner", close).CornerRadius = UDim.new(1, 0)
+
+        local avatar = Instance.new("ImageLabel")
+        avatar.Parent = popup
+        avatar.Size = UDim2.new(0, 48, 0, 48)
+        avatar.Position = UDim2.new(0, 16, 0, 36)
+        avatar.BackgroundTransparency = 1
+        avatar.ZIndex = 1001
+        Instance.new("UICorner", avatar).CornerRadius = UDim.new(1, 0)
+
+        task.spawn(function()
+            local ok, img = pcall(function()
+                return Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+            end)
+            avatar.Image = ok and img or "rbxasset://textures/ui/GuiImagePlaceholder.png"
+        end)
+
+        local title = Instance.new("TextLabel")
+        title.Parent = popup
+        title.BackgroundTransparency = 1
+        title.Position = UDim2.new(0, 16, 0, 8)
+        title.Size = UDim2.new(1, -32, 0, 24)
+        title.Font = Enum.Font.GothamBold
+        title.Text = "Goal Reached!"
+        title.TextColor3 = accentLight
+        title.TextSize = 18
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.ZIndex = 1001
+
+        local divider = Instance.new("Frame")
+        divider.Parent = popup
+        divider.Position = UDim2.new(0, 14, 0, 34)
+        divider.Size = UDim2.new(1, -28, 0, 1)
+        divider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        divider.BackgroundTransparency = 0.85
+        divider.BorderSizePixel = 0
+        divider.ZIndex = 1001
+
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Parent = popup
+        nameLabel.Position = UDim2.new(0, 76, 0, 38)
+        nameLabel.Size = UDim2.new(1, -100, 0, 22)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.Text = "@" .. player.Name
+        nameLabel.Font = Enum.Font.GothamBold
+        nameLabel.TextSize = 20
+        nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+        nameLabel.ZIndex = 1001
+
+        local goalLabel = Instance.new("TextLabel")
+        goalLabel.Parent = popup
+        goalLabel.Position = UDim2.new(0, 76, 0, 62)
+        goalLabel.Size = UDim2.new(1, -100, 0, 22)
+        goalLabel.BackgroundTransparency = 1
+        goalLabel.Text = "$" .. tostring(finalAmount) .. " / $" .. tostring(goalAmount)
+        goalLabel.Font = Enum.Font.Gotham
+        goalLabel.TextSize = 17
+        goalLabel.TextColor3 = Color3.fromRGB(120, 255, 180)
+        goalLabel.TextXAlignment = Enum.TextXAlignment.Left
+        goalLabel.ZIndex = 1001
+
+        close.MouseButton1Click:Connect(function()
+            task.spawn(function()
+                for i = 1, 10 do
+                    popup.BackgroundTransparency = i / 10
+                    task.wait(0.02)
+                end
+                blur:Destroy()
+                screenGui:Destroy()
+            end)
+        end)
+    end
+
+    local function createLog(actionType, player, goalAmount, finalAmount)
+        local username = player.Name
+        local userId = player.UserId
+
+        local outlineColor
+        local messageText
+
+        if actionType == "join" then
+            outlineColor = Color3.fromRGB(72, 255, 0)
+            messageText = "@" .. username .. " joined the game!"
+        elseif actionType == "rejoin" then
+            outlineColor = Color3.fromRGB(229, 255, 0)
+            messageText = "@" .. username .. " rejoined the game!"
+        elseif actionType == "leave" then
+            outlineColor = Color3.fromRGB(255, 0, 0)
+            messageText = "@" .. username .. " left the game!"
+        elseif actionType == "goal" then
+            outlineColor = GetAccentColor()
+            messageText = "@" .. username .. " reached their goal!"
+        elseif actionType == "goalSet" then
+            outlineColor = GetAccentLight()
+            messageText = "Goal has been set for @" .. username .. "!"
+        end
+
+        local frame = Instance.new("Frame")
+        frame.Parent = scrollingFrame
+        frame.Size = UDim2.new(0.9, 0, 0, 40)
+        frame.BackgroundColor3 = Color3.fromRGB(25, 18, 35)
+        frame.BorderSizePixel = 0
+        frame.ZIndex = 2
+        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Parent = frame
+        stroke.Thickness = 1.5
+        stroke.Color = outlineColor
+        stroke.Transparency = 0.2
+
+        local playerImage = Instance.new("ImageLabel", frame)
+        playerImage.Size = UDim2.new(0, 28, 0, 28)
+        playerImage.Position = UDim2.new(0, 10, 0, 6)
+        playerImage.BackgroundColor3 = Color3.fromRGB(40, 28, 55)
+        playerImage.BorderSizePixel = 0
+        playerImage.ZIndex = 2
+        playerImage.ScaleType = Enum.ScaleType.Crop
+        Instance.new("UICorner", playerImage).CornerRadius = UDim.new(1, 0)
+
+        task.spawn(function()
+            local success, image = pcall(function()
+                return Players:GetUserThumbnailAsync(userId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
+            end)
+            playerImage.Image = success and image or "rbxasset://textures/ui/GuiImagePlaceholder.png"
+        end)
+
+        local label = Instance.new("TextLabel", frame)
+        label.Size = UDim2.new(1, -130, 1, 0)
+        label.Position = UDim2.new(0, 50, 0, 0)
+        label.BackgroundTransparency = 1
+        label.Font = Enum.Font.GothamBold
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.TextSize = 13
+        label.TextXAlignment = Enum.TextXAlignment.Left
+        label.Text = messageText
+        label.ZIndex = 2
+
+        if actionType == "goal" then
+            local proofBtn = Instance.new("TextButton")
+            proofBtn.Parent = frame
+            proofBtn.Size = UDim2.new(0, 90, 0, 24)
+            proofBtn.Position = UDim2.new(1, -100, 0.5, -12)
+            proofBtn.BackgroundColor3 = GetAccentDark()
+            proofBtn.Font = Enum.Font.GothamBold
+            proofBtn.TextColor3 = Color3.new(1, 1, 1)
+            proofBtn.TextSize = 12
+            proofBtn.Text = "Show Proof"
+            proofBtn.ZIndex = 3
+            Instance.new("UICorner", proofBtn).CornerRadius = UDim.new(0, 6)
+            RegisterBackground(proofBtn, "dark")
+
+            proofBtn.MouseButton1Click:Connect(function()
+                createProofPopup(player, goalAmount, finalAmount)
+            end)
+        end
+
+        task.defer(function()
+            scrollingFrame.CanvasPosition = Vector2.new(0, scrollingFrame.AbsoluteCanvasSize.Y)
+        end)
+    end
+
+    local lastJoinTimes = {}
+
+    Players.PlayerAdded:Connect(function(player)
+        local now = tick()
+        if lastJoinTimes[player.UserId] and now - lastJoinTimes[player.UserId] < 10 then
+            createLog("rejoin", player)
+        else
+            createLog("join", player)
+        end
+        lastJoinTimes[player.UserId] = now
+    end)
+
+    Players.PlayerRemoving:Connect(function(player)
+        createLog("leave", player)
+    end)
+
+    function tab:AddGoalLog(player, goalAmount, finalAmount)
+        createLog("goal", player, goalAmount, finalAmount)
+    end
+
+    function tab:AddGoalSetLog(player)
+        createLog("goalSet", player)
+    end
+
+    return tab
+end
+
+function UILib:AddDropdown(tab, text, options, defaultOption, labelPosition, callback)
+    local TweenService = game:GetService("TweenService")
+    local UserInputService = game:GetService("UserInputService")
+
+    local dropdownFrame = Instance.new("Frame")
+    dropdownFrame.Parent = tab.contentFrame
+    dropdownFrame.Size = UDim2.new(0.9, 0, 0, 39)
+    dropdownFrame.BackgroundColor3 = GetAccentVeryDark()
+    RegisterBackground(dropdownFrame, "veryDark")
+    dropdownFrame.BackgroundTransparency = 0
+    dropdownFrame.BorderSizePixel = 0
+    dropdownFrame.ZIndex = 2
+    dropdownFrame.ClipsDescendants = false
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = dropdownFrame
+
+    local frameStroke = Instance.new("UIStroke")
+    frameStroke.Parent = dropdownFrame
+    frameStroke.Color = GetAccentMid()
+    frameStroke.Thickness = 1
+    frameStroke.Transparency = 0.4
+    RegisterStroke(frameStroke, "mid")
+
+    local label = Instance.new("TextLabel")
+    label.Parent = dropdownFrame
+    label.Text = text
+    label.Position = UDim2.new(0.05, 0, 0, 0)
+    label.Size = UDim2.new(0.65, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextYAlignment = Enum.TextYAlignment.Center
+    label.RichText = true
+    label.ZIndex = 3
+    label.ClipsDescendants = true
+
+    local dropdownButton = Instance.new("TextButton")
+    dropdownButton.Parent = dropdownFrame
+    dropdownButton.Size = UDim2.new(0.25, 0, 0.8, 0)
+    dropdownButton.Position = UDim2.new(0.72, 0, 0.1, 0)
+    dropdownButton.BackgroundColor3 = GetAccentDark()
+    dropdownButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    dropdownButton.Text = defaultOption or "Select"
+    dropdownButton.TextXAlignment = Enum.TextXAlignment.Center
+    dropdownButton.TextYAlignment = Enum.TextYAlignment.Center
+    dropdownButton.Font = Enum.Font.GothamBold
+    dropdownButton.TextSize = 15
+    dropdownButton.BorderSizePixel = 0
+    dropdownButton.ZIndex = 4
+    dropdownButton.AutoButtonColor = false
+    RegisterBackground(dropdownButton, "dark")
+
+    local dropdownCorner = Instance.new("UICorner")
+    dropdownCorner.CornerRadius = UDim.new(0, 10)
+    dropdownCorner.Parent = dropdownButton
+
+    local dropBtnStroke = Instance.new("UIStroke", dropdownButton)
+    dropBtnStroke.Color = GetAccentColor()
+    dropBtnStroke.Thickness = 1
+    dropBtnStroke.Transparency = 0.5
+    RegisterStroke(dropBtnStroke, "normal")
+
+    local clickBlocker = Instance.new("TextButton")
+    clickBlocker.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("SellingGui")
+    clickBlocker.Size = UDim2.new(1, 0, 1, 0)
+    clickBlocker.Position = UDim2.new(0, 0, 0, 0)
+    clickBlocker.BackgroundTransparency = 1
+    clickBlocker.Text = ""
+    clickBlocker.ZIndex = 49
+    clickBlocker.Visible = false
+    clickBlocker.Active = true
+
+    local dropdownList = Instance.new("ScrollingFrame")
+    dropdownList.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("SellingGui")
+    dropdownList.Visible = false
+    dropdownList.Size = UDim2.new(0, 0, 0, 0)
+    dropdownList.BackgroundColor3 = Color3.fromRGB(25, 18, 35)
+    dropdownList.BorderSizePixel = 0
+    dropdownList.CanvasSize = UDim2.new(0, 0, 0, #options * 36)
+    dropdownList.ScrollBarThickness = 4
+    dropdownList.ScrollBarImageColor3 = GetAccentColor()
+    dropdownList.ZIndex = 50
+    dropdownList.Active = true
+    RegisterScrollbar(dropdownList)
+
+    local dropdownCorner2 = Instance.new("UICorner")
+    dropdownCorner2.CornerRadius = UDim.new(0, 12)
+    dropdownCorner2.Parent = dropdownList
+
+    local dropdownListStroke = Instance.new("UIStroke", dropdownList)
+    dropdownListStroke.Color = GetAccentColor()
+    dropdownListStroke.Thickness = 1
+    RegisterStroke(dropdownListStroke, "normal")
+
+    local listLayout = Instance.new("UIListLayout")
+    listLayout.Parent = dropdownList
+    listLayout.Padding = UDim.new(0, 5)
+
+    local listPadding = Instance.new("UIPadding", dropdownList)
+    listPadding.PaddingTop = UDim.new(0, 4)
+    listPadding.PaddingLeft = UDim.new(0, 4)
+    listPadding.PaddingRight = UDim.new(0, 4)
+
+    local isOpen = false
+    local optionButtons = {}
+
+    local function closeDropdown()
+        if not isOpen then return end
+        isOpen = false
+        clickBlocker.Visible = false
+        TweenService:Create(dropdownList, TweenInfo.new(0.2), { Size = UDim2.new(0, dropdownButton.AbsoluteSize.X, 0, 0) }):Play()
+        task.delay(0.2, function()
+            if not isOpen then
+                dropdownList.Visible = false
+            end
+        end)
+    end
+
+    local function openDropdown()
+        if isOpen then return end
+        isOpen = true
+        
+        local btnPos = dropdownButton.AbsolutePosition
+        local btnSize = dropdownButton.AbsoluteSize
+        local screenSize = workspace.CurrentCamera.ViewportSize
+        
+        local spaceBelow = screenSize.Y - (btnPos.Y + btnSize.Y)
+        local targetHeight = math.min(#options, 5) * 36 + 10
+        local openUpward = spaceBelow < targetHeight + 20
+        
+        dropdownList.Size = UDim2.new(0, btnSize.X, 0, 0)
+        dropdownList.Visible = true
+        clickBlocker.Visible = true
+        
+        if openUpward then
+            dropdownList.Position = UDim2.fromOffset(btnPos.X, btnPos.Y - targetHeight - 5)
+        else
+            dropdownList.Position = UDim2.fromOffset(btnPos.X, btnPos.Y + btnSize.Y + 5)
+        end
+        
+        TweenService:Create(dropdownList, TweenInfo.new(0.25), { Size = UDim2.new(0, btnSize.X, 0, targetHeight) }):Play()
+    end
+
+    clickBlocker.MouseButton1Click:Connect(function()
+        closeDropdown()
+    end)
+
+    for _, option in ipairs(options) do
+        local optionButton = Instance.new("TextButton")
+        optionButton.Parent = dropdownList
+        optionButton.Text = option
+        optionButton.TextXAlignment = Enum.TextXAlignment.Center
+        optionButton.TextYAlignment = Enum.TextYAlignment.Center
+        optionButton.Size = UDim2.new(1, -8, 0, 30)
+        optionButton.BackgroundColor3 = GetAccentSuperDark()
+        optionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        optionButton.Font = Enum.Font.GothamBold
+        optionButton.TextSize = 14
+        optionButton.BorderSizePixel = 0
+        optionButton.ZIndex = 51
+        optionButton.AutoButtonColor = false
+        optionButton.Active = true
+
+        local opCorner = Instance.new("UICorner")
+        opCorner.CornerRadius = UDim.new(0, 10)
+        opCorner.Parent = optionButton
+
+        local opStroke = Instance.new("UIStroke")
+        opStroke.Parent = optionButton
+        opStroke.Color = GetAccentMid()
+        opStroke.Thickness = 1
+        opStroke.Transparency = 0.6
+
+        table.insert(optionButtons, {btn = optionButton, stroke = opStroke})
+
+        optionButton.MouseEnter:Connect(function()
+            TweenService:Create(optionButton, TweenInfo.new(0.12), { BackgroundColor3 = GetAccentDark() }):Play()
+        end)
+
+        optionButton.MouseLeave:Connect(function()
+            TweenService:Create(optionButton, TweenInfo.new(0.12), { BackgroundColor3 = GetAccentSuperDark() }):Play()
+        end)
+
+        optionButton.MouseButton1Click:Connect(function()
+            dropdownButton.Text = option
+            closeDropdown()
+            task.defer(function()
+                callback(option)
+            end)
+        end)
+    end
+
+    dropdownButton.MouseEnter:Connect(function()
+        TweenService:Create(dropdownButton, TweenInfo.new(0.15), {BackgroundColor3 = GetAccentMid()}):Play()
+    end)
+    dropdownButton.MouseLeave:Connect(function()
+        TweenService:Create(dropdownButton, TweenInfo.new(0.15), {BackgroundColor3 = GetAccentDark()}):Play()
+    end)
+
+    dropdownButton.MouseButton1Click:Connect(function()
+        if isOpen then
+            closeDropdown()
+        else
+            openDropdown()
+        end
+    end)
+
+    local function RefreshTheme()
+        dropdownButton.BackgroundColor3 = GetAccentDark()
+        dropBtnStroke.Color = GetAccentColor()
+        dropdownListStroke.Color = GetAccentColor()
+        dropdownList.ScrollBarImageColor3 = GetAccentColor()
+        for _, data in pairs(optionButtons) do
+            data.btn.BackgroundColor3 = GetAccentSuperDark()
+            data.stroke.Color = GetAccentMid()
+        end
+    end
+    
+    local dropdownData = { Button = dropdownButton, RefreshTheme = RefreshTheme }
+    table.insert(getgenv().ThemeDropdowns, dropdownData)
+
+    return dropdownButton
+end
+
+function UILib:AddLabel(tab, text)
+    local label = Instance.new("TextLabel")
+    label.Parent = tab.contentFrame
+    label.Text = text
+    label.Size = UDim2.new(0.9, 0, 0, 36)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = GetAccentLight()
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    RegisterLabel(label, "light")
+    
+    return label
+end
+
+function UILib:AddKeybind(tab, text, callback, defaultKey)
+    local TweenService = game:GetService("TweenService")
+    
+    local keybindFrame = Instance.new("Frame")
+    keybindFrame.Parent = tab.contentFrame
+    keybindFrame.Size = UDim2.new(0.9, 0, 0, 39)
+    keybindFrame.BackgroundColor3 = GetAccentVeryDark()
+    RegisterBackground(keybindFrame, "veryDark")
+    keybindFrame.BackgroundTransparency = 0
+    keybindFrame.BorderSizePixel = 0
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = keybindFrame
+    stroke.Color = GetAccentMid()
+    stroke.Thickness = 1
+    stroke.Transparency = 0.4
+    RegisterStroke(stroke, "mid")
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = keybindFrame
+
+    local label = Instance.new("TextLabel")
+    label.Parent = keybindFrame
+    label.Text = text
+    label.Size = UDim2.new(0.5, 0, 1, 0) 
+    label.Position = UDim2.new(0.2, 0, 0, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Center
+
+    local keybindButton = Instance.new("TextButton")
+    keybindButton.Parent = keybindFrame
+    keybindButton.Text = defaultKey and defaultKey.Name or "..."
+    keybindButton.Size = UDim2.new(0.25, 0, 0.8, 0) 
+    keybindButton.Position = UDim2.new(0.73, 0, 0.1, 0)
+    keybindButton.BackgroundColor3 = GetAccentDark()
+    keybindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keybindButton.Font = Enum.Font.GothamBold
+    keybindButton.TextSize = 16
+    keybindButton.BorderSizePixel = 0
+    keybindButton.TextXAlignment = Enum.TextXAlignment.Center
+    keybindButton.AutoButtonColor = false
+    RegisterKeybindButton(keybindButton)
+
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = keybindButton
+
+    local buttonStroke = Instance.new("UIStroke")
+    buttonStroke.Parent = keybindButton
+    buttonStroke.Color = GetAccentColor()
+    buttonStroke.Thickness = 1
+    buttonStroke.Transparency = 0.5
+    RegisterStroke(buttonStroke, "normal")
+
+    keybindButton.MouseEnter:Connect(function()
+        TweenService:Create(keybindButton, TweenInfo.new(0.15), { BackgroundColor3 = GetAccentMid() }):Play()
+    end)
+    
+    keybindButton.MouseLeave:Connect(function()
+        TweenService:Create(keybindButton, TweenInfo.new(0.15), { BackgroundColor3 = GetAccentDark() }):Play()
+    end)
+
+    local keybind = defaultKey or nil
+    local waitingForKey = false
+
+    keybindButton.MouseButton1Click:Connect(function()
+        if not waitingForKey then
+            keybindButton.Text = "..."
+            waitingForKey = true
+        else
+            keybindButton.Text = keybind and keybind.Name or "..."
+            waitingForKey = false
+        end
+    end)
+
+    local UIS = game:GetService("UserInputService")
+    UIS.InputBegan:Connect(function(input, gameProcessed)
+        if waitingForKey and input.UserInputType == Enum.UserInputType.Keyboard then
+            keybind = input.KeyCode
+            keybindButton.Text = keybind.Name
+            waitingForKey = false
+            callback(keybind)
+        elseif not gameProcessed and input.UserInputType == Enum.UserInputType.Keyboard then
+            if keybind and input.KeyCode == keybind then
+                callback(keybind)
+            end
+        end
+    end)
+
+    tab.contentFrame.CanvasSize = UDim2.new(0, 0, 0, (#tab.contentFrame:GetChildren()) * 43.9)
+
+    local function RefreshTheme()
+        keybindButton.BackgroundColor3 = GetAccentDark()
+        buttonStroke.Color = GetAccentColor()
+    end
+
+    return { Button = keybindButton, RefreshTheme = RefreshTheme }
+end
+
+-- Global input listener for hotkeys
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if getgenv().SettingKeybind then return end
+    
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        local system = getgenv().HotkeySystem
+        if not system then return end
+        
+        for name, hotkey in pairs(system.hotkeys) do
+            if hotkey.enabled and hotkey.key and input.KeyCode == hotkey.key then
+                if hotkey.toggleFunc then
+                    hotkey.toggleFunc()
+                end
+            end
+        end
+    end
+end)
+
+-- Crear panel de hotkeys al inicio
+task.spawn(function()
+    task.wait(1)
+    if getgenv().CreateHotkeyPanel then
+        getgenv().CreateHotkeyPanel()
+    end
+end)
+
+return UILib
