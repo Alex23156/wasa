@@ -556,8 +556,7 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     
     local popupStroke = Instance.new("UIStroke", popup)
     popupStroke.Color = GetAccentColor()
-    popupStroke.Thickness = 1
-    popupStroke.Transparency = 0.3
+    popupStroke.Thickness = 1.5
     
     -- Posicionar cerca del toggle
     local absPos = parentToggle.AbsolutePosition
@@ -571,10 +570,12 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     content.BackgroundTransparency = 1
     content.ZIndex = 11
     
-    -- Checkbox de Toggle
+    -- [[ ESTILO ACTUALIZADO TIPO WALLET ]] --
+    
+    -- Checkbox de Toggle (El cuadrito)
     local toggleCheck = Instance.new("TextButton", content)
-    toggleCheck.Size = UDim2.new(0, 18, 0, 18)
-    toggleCheck.Position = UDim2.new(0, 0, 0, 8)
+    toggleCheck.Size = UDim2.new(0, 20, 0, 20) -- Tamaño 20px
+    toggleCheck.Position = UDim2.new(0, 0, 0, 6)
     toggleCheck.BackgroundColor3 = GetAccentSuperDark()
     toggleCheck.Text = ""
     toggleCheck.ZIndex = 12
@@ -582,22 +583,23 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     Instance.new("UICorner", toggleCheck).CornerRadius = UDim.new(0, 4)
     
     local checkStroke = Instance.new("UIStroke", toggleCheck)
-    checkStroke.Color = GetAccentColor()
+    checkStroke.Color = GetAccentMid() -- Color inicial (apagado)
     checkStroke.Thickness = 1.5
     
     local checkMark = Instance.new("TextLabel", toggleCheck)
-    checkMark.Text = ""
+    checkMark.Text = "✓" -- Check real
     checkMark.Size = UDim2.new(1, 0, 1, 0)
     checkMark.BackgroundTransparency = 1
-    checkMark.TextColor3 = GetAccentLight()
+    checkMark.TextColor3 = GetAccentColor()
     checkMark.Font = Enum.Font.GothamBold
     checkMark.TextSize = 14
     checkMark.ZIndex = 13
+    checkMark.Visible = false -- Oculto por defecto
     
     local toggleLabel = Instance.new("TextLabel", content)
     toggleLabel.Text = "Toggle"
     toggleLabel.Size = UDim2.new(0, 50, 0, 18)
-    toggleLabel.Position = UDim2.new(0, 24, 0, 8)
+    toggleLabel.Position = UDim2.new(0, 26, 0, 7) -- Ajustado posición
     toggleLabel.BackgroundTransparency = 1
     toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     toggleLabel.Font = Enum.Font.GothamBold
@@ -608,7 +610,7 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     -- Botón Set Keybind
     local keybindBtn = Instance.new("TextButton", content)
     keybindBtn.Size = UDim2.new(0, 85, 0, 22)
-    keybindBtn.Position = UDim2.new(0, 75, 0, 6)
+    keybindBtn.Position = UDim2.new(0, 75, 0, 5)
     keybindBtn.BackgroundColor3 = GetAccentDark()
     keybindBtn.Text = "Set Keybind"
     keybindBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -620,11 +622,6 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     Instance.new("UICorner", keybindBtn).CornerRadius = UDim.new(0, 6)
 
     local keybindBtnStroke = Instance.new("UIStroke", keybindBtn)
-    keybindBtnStroke.Color = GetAccentColor()
-    keybindBtnStroke.Thickness = 1
-    keybindBtnStroke.Transparency = 0.3
-    
-    local keybindBtnStroke = Instance.new("UIStroke", keybindBtn)
     keybindBtnStroke.Color = GetAccentMid()
     keybindBtnStroke.Thickness = 1
     
@@ -634,18 +631,22 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     
     local function updateCheckVisual()
         if isEnabled then
-            checkMark.Text = "✓"
+            checkMark.Visible = true
+            checkStroke.Color = GetAccentColor() -- Borde del tema cuando está activo
+            
             keybindBtn.Visible = true
-            popup.Size = UDim2.new(0, 180, 0, 45)
+            popup.Size = UDim2.new(0, 180, 0, 40) -- Ajuste de altura
             if currentKey then
                 keybindBtn.Text = currentKey.Name
             else
                 keybindBtn.Text = "Set Keybind"
             end
         else
-            checkMark.Text = ""
+            checkMark.Visible = false
+            checkStroke.Color = GetAccentMid() -- Borde gris cuando está inactivo
+            
             keybindBtn.Visible = false
-            popup.Size = UDim2.new(0, 100, 0, 45)
+            popup.Size = UDim2.new(0, 90, 0, 40)
         end
     end
     
