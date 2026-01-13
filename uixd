@@ -1,3 +1,4 @@
+-- uilib libreria 
 wait(1)
 
 if not getgenv().ThemeRegistry then
@@ -555,8 +556,7 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     
     local popupStroke = Instance.new("UIStroke", popup)
     popupStroke.Color = GetAccentColor()
-    popupStroke.Thickness = 1
-    popupStroke.Transparency = 0.3
+    popupStroke.Thickness = 1.5
     
     -- Posicionar cerca del toggle
     local absPos = parentToggle.AbsolutePosition
@@ -570,10 +570,12 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     content.BackgroundTransparency = 1
     content.ZIndex = 11
     
-    -- Checkbox de Toggle
+    -- [[ ESTILO ACTUALIZADO TIPO WALLET ]] --
+    
+    -- Checkbox de Toggle (El cuadrito)
     local toggleCheck = Instance.new("TextButton", content)
-    toggleCheck.Size = UDim2.new(0, 18, 0, 18)
-    toggleCheck.Position = UDim2.new(0, 0, 0, 8)
+    toggleCheck.Size = UDim2.new(0, 20, 0, 20) -- Tamaño 20px
+    toggleCheck.Position = UDim2.new(0, 0, 0, 6)
     toggleCheck.BackgroundColor3 = GetAccentSuperDark()
     toggleCheck.Text = ""
     toggleCheck.ZIndex = 12
@@ -581,22 +583,23 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     Instance.new("UICorner", toggleCheck).CornerRadius = UDim.new(0, 4)
     
     local checkStroke = Instance.new("UIStroke", toggleCheck)
-    checkStroke.Color = GetAccentMid()
-    checkStroke.Thickness = 1
+    checkStroke.Color = GetAccentMid() -- Color inicial (apagado)
+    checkStroke.Thickness = 1.5
     
     local checkMark = Instance.new("TextLabel", toggleCheck)
-    checkMark.Text = ""
+    checkMark.Text = "✓" -- Check real
     checkMark.Size = UDim2.new(1, 0, 1, 0)
     checkMark.BackgroundTransparency = 1
-    checkMark.TextColor3 = GetAccentLight()
+    checkMark.TextColor3 = GetAccentColor()
     checkMark.Font = Enum.Font.GothamBold
     checkMark.TextSize = 14
     checkMark.ZIndex = 13
+    checkMark.Visible = false -- Oculto por defecto
     
     local toggleLabel = Instance.new("TextLabel", content)
     toggleLabel.Text = "Toggle"
     toggleLabel.Size = UDim2.new(0, 50, 0, 18)
-    toggleLabel.Position = UDim2.new(0, 24, 0, 8)
+    toggleLabel.Position = UDim2.new(0, 26, 0, 7) -- Ajustado posición
     toggleLabel.BackgroundTransparency = 1
     toggleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     toggleLabel.Font = Enum.Font.GothamBold
@@ -607,7 +610,7 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     -- Botón Set Keybind
     local keybindBtn = Instance.new("TextButton", content)
     keybindBtn.Size = UDim2.new(0, 85, 0, 22)
-    keybindBtn.Position = UDim2.new(0, 75, 0, 6)
+    keybindBtn.Position = UDim2.new(0, 75, 0, 5)
     keybindBtn.BackgroundColor3 = GetAccentDark()
     keybindBtn.Text = "Set Keybind"
     keybindBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -619,11 +622,6 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     Instance.new("UICorner", keybindBtn).CornerRadius = UDim.new(0, 6)
 
     local keybindBtnStroke = Instance.new("UIStroke", keybindBtn)
-    keybindBtnStroke.Color = GetAccentColor()
-    keybindBtnStroke.Thickness = 1
-    keybindBtnStroke.Transparency = 0.3
-    
-    local keybindBtnStroke = Instance.new("UIStroke", keybindBtn)
     keybindBtnStroke.Color = GetAccentMid()
     keybindBtnStroke.Thickness = 1
     
@@ -633,18 +631,22 @@ local function CreateKeybindPopup(parentToggle, toggleName, onKeybindSet, onKeyb
     
     local function updateCheckVisual()
         if isEnabled then
-            checkMark.Text = "✓"
+            checkMark.Visible = true
+            checkStroke.Color = GetAccentColor() -- Borde del tema cuando está activo
+            
             keybindBtn.Visible = true
-            popup.Size = UDim2.new(0, 180, 0, 45)
+            popup.Size = UDim2.new(0, 180, 0, 40) -- Ajuste de altura
             if currentKey then
                 keybindBtn.Text = currentKey.Name
             else
                 keybindBtn.Text = "Set Keybind"
             end
         else
-            checkMark.Text = ""
+            checkMark.Visible = false
+            checkStroke.Color = GetAccentMid() -- Borde gris cuando está inactivo
+            
             keybindBtn.Visible = false
-            popup.Size = UDim2.new(0, 100, 0, 45)
+            popup.Size = UDim2.new(0, 90, 0, 40)
         end
     end
     
@@ -2410,17 +2412,40 @@ function UILib:AddBuyersTab(name, decalID)
         nameLabel.BackgroundTransparency = 1
         nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-        local currencyValue = targetPlayer:WaitForChild("DataFolder"):WaitForChild("Currency")
-        local startCurrency = currencyValue.Value
-        local earnedSoFar = initialPending or 0 
-        
-        if isRestoring then
-            earnedSoFar = initialPending
-            startCurrency = currencyValue.Value
-        elseif initialGoal and initialGoal > 0 then
-            startCurrency = currencyValue.Value - earnedSoFar
+        -- ✅ RECONNECT-SAFE STATE (no depende de instancias viejas)
+        local Players = game:GetService("Players")
+        local TextService = game:GetService("TextService")
+
+        local currentPlayer = targetPlayer
+        local currencyValue = nil
+
+        local currencyConn = nil
+        local charConn = nil
+        local removingConn = nil
+        local addedConn = nil
+
+        local earnedSoFar = initialPending or 0
+        local startCurrency = 0
+
+        -- Goal state (se mantiene aunque el player se vaya)
+        local goalValue = 0
+        local goalSent = false
+
+        -- Este debe mantenerse estable para no “mover” la meta al reconectar
+        local goalStartCurrency = nil
+
+        -- 🔹 Intenta obtener Currency del player actual (con timeout para evitar yield infinito)
+        local function tryGetCurrency(p)
+            if not p then return nil end
+            local dataFolder = p:WaitForChild("DataFolder", 10)
+            if not dataFolder then return nil end
+            local cur = dataFolder:WaitForChild("Currency", 10)
+            return cur
         end
 
+        -- =========================
+        -- UI Labels (igual que antes)
+        -- =========================
         local currentLabel = Instance.new("TextLabel", frame)
         currentLabel.Text = "Loading..."
         currentLabel.Position = UDim2.new(0, 90, 0, 35)
@@ -2432,34 +2457,39 @@ function UILib:AddBuyersTab(name, decalID)
         currentLabel.TextXAlignment = Enum.TextXAlignment.Left
 
         local remainingLabel = Instance.new("TextLabel", frame)
-        remainingLabel.Text = "Remaining: -"
+        remainingLabel.Text = ""
         remainingLabel.Position = UDim2.new(0, 90, 0, 55)
-        remainingLabel.Size = UDim2.new(0.5, 0, 0, 18)
-        remainingLabel.Font = Enum.Font.Gotham
-        remainingLabel.TextSize = 12
-        remainingLabel.TextColor3 = GetAccentLight()
+        remainingLabel.Size = UDim2.new(0.5, 0, 0, 20)
+        remainingLabel.Font = Enum.Font.GothamBold
+        remainingLabel.TextSize = 14
+        remainingLabel.TextColor3 = Color3.fromRGB(255, 220, 120)
         remainingLabel.BackgroundTransparency = 1
         remainingLabel.TextXAlignment = Enum.TextXAlignment.Left
-        RegisterLabel(remainingLabel, "light")
 
+        -- =========================
+        -- Goal input UI (igual que antes)
+        -- =========================
         local goalBox = Instance.new("TextBox", frame)
+        goalBox.PlaceholderText = "$ Goal"
         goalBox.Text = ""
-        goalBox.PlaceholderText = "Set goal..."
-        goalBox.Size = UDim2.new(0, 240, 0, 28)
-        goalBox.Position = UDim2.new(0, 90, 0, 75)
-        goalBox.BackgroundColor3 = GetAccentSuperDark()
+        goalBox.ClearTextOnFocus = false
+        goalBox.Position = UDim2.new(0.78, 0, 0.5, -14)
+        goalBox.Size = UDim2.new(0.18, 0, 0, 28)
+        goalBox.Font = Enum.Font.GothamBold
+        goalBox.TextSize = 13
         goalBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-        goalBox.Font = Enum.Font.Gotham
-        goalBox.TextSize = 14
-        Instance.new("UICorner", goalBox).CornerRadius = UDim.new(0, 6)
+        goalBox.BackgroundColor3 = GetAccentDark()
+        goalBox.BackgroundTransparency = 0.2
+        RegisterBackground(goalBox, "dark")
+        Instance.new("UICorner", goalBox).CornerRadius = UDim.new(0, 8)
         RegisterTextbox(goalBox)
-        
+
         local goalBoxStroke = Instance.new("UIStroke", goalBox)
         goalBoxStroke.Color = GetAccentMid()
         goalBoxStroke.Thickness = 1
         goalBoxStroke.Transparency = 0.5
         RegisterStroke(goalBoxStroke, "mid")
-        
+
         local removeBtn = Instance.new("ImageButton", frame)
         removeBtn.Size = UDim2.new(0, 23, 0, 23)
         removeBtn.Position = UDim2.new(1, -30, 0, 5)
@@ -2467,35 +2497,14 @@ function UILib:AddBuyersTab(name, decalID)
         removeBtn.Image = "rbxassetid://112950838956740"
 
         local isFromAPI = (initialGoal and initialGoal > 0 and not isRestoring)
-        if isFromAPI then removeBtn.Visible = false end
-        
-        removeBtn.MouseButton1Click:Connect(function()
-            if not isFromAPI then
-                if getgenv().ManualClientsCache then
-                    getgenv().ManualClientsCache[oderId] = nil
-                end
-            end
-            
-            getgenv().AddedBuyerIds[oderId] = nil
-            if getgenv().ApiBuyerFrames[oderId] then getgenv().ApiBuyerFrames[oderId] = nil end
-            frame:Destroy()
-        end)
-
-        local goalValue = 0
-        local goalSent = false
-
-        if isRestoring and initialGoal then
-            goalValue = initialGoal
-            goalBox.Text = FormatNumber(goalValue)
-        elseif isFromAPI then
-            goalValue = initialGoal
-            goalBox.Text = FormatNumber(goalValue)
-            goalBox.TextEditable = false 
+        if isFromAPI then
+            removeBtn.Visible = false
+            goalBox.TextEditable = false
         end
 
-        local TextService = game:GetService("TextService")
-        local goalStartCurrency = currencyValue.Value
-        
+        -- =========================
+        -- Billboard (re-creable / re-attachable)
+        -- =========================
         local billboard = Instance.new("BillboardGui")
         billboard.Name = "BuyerBillboard"
         billboard.Adornee = nil
@@ -2504,7 +2513,7 @@ function UILib:AddBuyersTab(name, decalID)
         billboard.StudsOffset = Vector3.new(0, 3, 0)
         billboard.LightInfluence = 0
         billboard.MaxDistance = 150
-        billboard.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+        billboard.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 
         local billboardFrame = Instance.new("Frame", billboard)
         billboardFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -2524,219 +2533,221 @@ function UILib:AddBuyersTab(name, decalID)
         billboardThumb.Size = UDim2.new(0, 36, 0, 36)
         billboardThumb.Position = UDim2.new(0, 8, 0.5, -18)
         billboardThumb.BackgroundColor3 = GetAccentSuperDark()
+        billboardThumb.BackgroundTransparency = 0.2
         billboardThumb.BorderSizePixel = 0
+        billboardThumb.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(oderId) .. "&w=150&h=150"
         Instance.new("UICorner", billboardThumb).CornerRadius = UDim.new(1, 0)
         RegisterBackground(billboardThumb, "superDark")
 
-        task.spawn(function()
-            local content = Players:GetUserThumbnailAsync(
-                targetPlayer.UserId,
-                Enum.ThumbnailType.HeadShot,
-                Enum.ThumbnailSize.Size100x100
-            )
-            billboardThumb.Image = content
-        end)
+        local billboardText = Instance.new("TextLabel", billboardFrame)
+        billboardText.Position = UDim2.new(0, 52, 0, 0)
+        billboardText.Size = UDim2.new(1, -60, 1, 0)
+        billboardText.BackgroundTransparency = 1
+        billboardText.Font = Enum.Font.GothamBold
+        billboardText.TextSize = 16
+        billboardText.TextColor3 = Color3.fromRGB(255, 255, 255)
+        billboardText.TextXAlignment = Enum.TextXAlignment.Left
 
-        local billboardLabel = Instance.new("TextLabel", billboardFrame)
-        billboardLabel.Size = UDim2.new(1, -56, 1, 0)
-        billboardLabel.Position = UDim2.new(0, 50, 0, 0)
-        billboardLabel.BackgroundTransparency = 1
-        billboardLabel.Font = Enum.Font.GothamBold
-        billboardLabel.TextSize = 16
-        billboardLabel.TextXAlignment = Enum.TextXAlignment.Left
-        billboardLabel.RichText = true
-        billboardLabel.Text = '<font color="#FFFFFF">$0</font> / <font color="#808080">$0</font>'
-        
-        local function updateBillboard()
-            local current = currencyValue.Value
-            local displayText = ""
-            local accentHex = string.format("%02X%02X%02X", 
-                math.floor(GetAccentColor().R * 255), 
-                math.floor(GetAccentColor().G * 255), 
-                math.floor(GetAccentColor().B * 255)
-            )
-            
-            if goalValue > 0 then
-                local goalTotal = goalStartCurrency + goalValue
-                local reachedGoal = earnedSoFar >= goalValue
-                
-                if reachedGoal then
-                    -- Meta alcanzada: tema / tema
-                    displayText = '<font color="#'..accentHex..'">$' .. FormatNumber(current) .. '</font> / <font color="#'..accentHex..'">$' .. FormatNumber(goalTotal) .. '</font>'
-                else
-                    -- Sin alcanzar: blanco / tema
-                    displayText = '<font color="#FFFFFF">$' .. FormatNumber(current) .. '</font> / <font color="#'..accentHex..'">$' .. FormatNumber(goalTotal) .. '</font>'
-                end
-            else
-                -- Sin goal: blanco / gris
-                displayText = '<font color="#FFFFFF">$' .. FormatNumber(current) .. '</font> / <font color="#808080">-</font>'
+        local function updateBillboardText()
+            local goalTotal = "-"
+            if goalValue > 0 and goalStartCurrency then
+                goalTotal = "$" .. FormatNumber(goalStartCurrency + goalValue)
             end
-            
-            billboardLabel.Text = displayText
-            
-            local plainText = "$" .. FormatNumber(current) .. " / "
-            if goalValue > 0 then
-                plainText = plainText .. "$" .. FormatNumber(goalStartCurrency + goalValue)
-            else
-                plainText = plainText .. "-"
+
+            local reachedGoal = (goalValue > 0 and earnedSoFar >= goalValue)
+
+            local txt = "$" .. FormatNumber(earnedSoFar) .. " / " .. goalTotal
+            if reachedGoal then
+                txt = txt .. " ✅"
             end
-            
-            local textSize = TextService:GetTextSize(plainText, 16, Enum.Font.GothamBold, Vector2.new(1000, 50))
-            local newWidth = math.max(textSize.X + 70, 150)
-            
+
+            billboardText.Text = txt
+
+            -- auto-resize
+            local size = TextService:GetTextSize(txt, 16, Enum.Font.GothamBold, Vector2.new(1000, 50))
+            local newWidth = math.max(size.X + 70, 150)
             billboard.Size = UDim2.new(0, newWidth, 0, 50)
         end
 
-        local function attachBillboard()
-            if targetPlayer.Character then
-                local head = targetPlayer.Character:FindFirstChild("Head")
-                if head then
-                    billboard.Adornee = head
-                end
+        local function attachBillboardToCharacter()
+            if not currentPlayer then
+                billboard.Adornee = nil
+                return
             end
+            local char = currentPlayer.Character
+            if not char then
+                billboard.Adornee = nil
+                return
+            end
+            local head = char:FindFirstChild("Head")
+            billboard.Adornee = head
         end
 
-        attachBillboard()
-        targetPlayer.CharacterAdded:Connect(function(char)
-            task.wait(0.5)
-            attachBillboard()
-        end)
-        updateBillboard()
-
-        frame.Destroying:Connect(function()
-            billboard:Destroy()
-        end)
-
+        -- =========================
+        -- Labels + Currency tracking (re-bind)
+        -- =========================
         local function updateLabels()
+            if not currencyValue then
+                currentLabel.Text = "Offline / Waiting..."
+                remainingLabel.Text = ""
+                updateBillboardText()
+                return
+            end
+
             local current = currencyValue.Value
             local diff = current - startCurrency
-            
+
             if diff > 0 then
                 earnedSoFar = earnedSoFar + diff
                 startCurrency = current
-                
+
                 if not isFromAPI and goalValue > 0 then
                     if getgenv().UpdateManualCache then
                         getgenv().UpdateManualCache(oderId, goalValue, earnedSoFar)
                     end
                 end
-        
-                if isFromAPI and getgenv().ActualizarClienteAPI then
-                    getgenv().ActualizarClienteAPI(script_key, oderId, earnedSoFar)
-                end
             end
-            
-            if diff < 0 then startCurrency = current end
 
-            currentLabel.Text = "Current DHC: $" .. FormatNumber(current)
-            
+            currentLabel.Text = "Earned: $" .. FormatNumber(earnedSoFar)
+
             if goalValue > 0 then
                 local remaining = math.max(goalValue - earnedSoFar, 0)
                 remainingLabel.Text = "Remaining: $" .. FormatNumber(remaining)
             else
                 remainingLabel.Text = "Remaining: -"
             end
-            
-            -- Solo resetear checkmark si hay remaining > 0
-            if goalValue > 0 and (goalValue - earnedSoFar) > 0 then
-                checkmark.Visible = false
-            end
-            
-            updateBillboard()
+
+            updateBillboardText()
         end
 
-        currencyValue:GetPropertyChangedSignal("Value"):Connect(updateLabels)
-        updateLabels()
+        local function disconnectTrackers()
+            if currencyConn then currencyConn:Disconnect() currencyConn = nil end
+            if charConn then charConn:Disconnect() charConn = nil end
+            currencyValue = nil
+        end
 
-        goalBox.FocusLost:Connect(function(enter)
-            local newParsed = ParseGoal(goalBox.Text)
-            
-            -- Advertencia si tiene más de 40k y quiere cambiar o borrar el goal
-            if goalValue > 0 and earnedSoFar > 40000 and newParsed ~= goalValue then
-                local actionText = newParsed > 0 and "change the goal" or "remove the goal"
-                ShowConfirmationModal(
-                    "This client has collected $"..FormatNumber(earnedSoFar)..". Are you sure you want to "..actionText.."?",
-                    function()
-                        -- RESETEAR TODO cuando se confirma el cambio
-                        earnedSoFar = 0
-                        goalSent = false
-                        checkmark.Visible = false  -- 
-                        goalStartCurrency = currencyValue.Value
-                        startCurrency = currencyValue.Value
-                        
-                        if newParsed > 0 then
-                            goalValue = newParsed
-                            goalBox.Text = FormatNumber(goalValue)
-                            if not isFromAPI and getgenv().UpdateManualCache then
-                                getgenv().UpdateManualCache(oderId, goalValue, earnedSoFar)
-                            end
-                            -- Shout de goal set
-                            if not isRestoring then
-                                local shouts = getgenv().AutofarmSettings and getgenv().AutofarmSettings.Shouts
-                                local msg = (shouts and shouts["Goal Set"]) or "Goal set for {buyer}"
-                                game.ReplicatedStorage.MainEvent:FireServer("Shout", msg:gsub("{buyer}", "@"..targetPlayer.Name))
-                                if getgenv().AddGoalSetLog then
-                                    getgenv().AddGoalSetLog(targetPlayer)
-                                end
-                                if getgenv().BringOnGoalSet then
-                                    game.ReplicatedStorage:WaitForChild("MainEvent"):FireServer("VIP_CMD", "Summon", targetPlayer)
-                                end
-                            end
-                        else
-                            goalValue = 0
-                            goalBox.Text = ""
-                            if not isFromAPI and getgenv().ManualClientsCache then
-                                getgenv().ManualClientsCache[oderId] = nil
-                            end
-                        end
-                        updateLabels()
-                    end,
-                    function()
-                        -- Cancelar - restaurar el texto
-                        if goalValue > 0 then
-                            goalBox.Text = FormatNumber(goalValue)
-                        else
-                            goalBox.Text = ""
-                        end
-                    end
-                )
-                return
+        local function bindToPlayer(p)
+            currentPlayer = p
+            disconnectTrackers()
+
+            -- Si vuelve a entrar, re-obtenemos Currency y reiniciamos baseline (sin tocar earnedSoFar)
+            currencyValue = tryGetCurrency(currentPlayer)
+            if currencyValue then
+                startCurrency = currencyValue.Value
+
+                -- goalStartCurrency solo se define una vez (para mantener meta estable entre reconexiones)
+                if goalStartCurrency == nil then
+                    goalStartCurrency = currencyValue.Value - earnedSoFar
+                end
+
+                currencyConn = currencyValue:GetPropertyChangedSignal("Value"):Connect(updateLabels)
             end
 
-            -- Sin advertencia (goal anterior era 0 o earned < 40k)
-            if newParsed > 0 then
-                -- RESETEAR cuando se establece un nuevo goal
-                earnedSoFar = 0
-                goalSent = false
-                checkmark.Visible = false  -- 
-                goalStartCurrency = currencyValue.Value
-                startCurrency = currencyValue.Value
-                
-                goalValue = newParsed
-                goalBox.Text = FormatNumber(goalValue)
-                if not isFromAPI and getgenv().UpdateManualCache then
-                    getgenv().UpdateManualCache(oderId, goalValue, earnedSoFar)
-                end
-                if not isRestoring then
-                    local shouts = getgenv().AutofarmSettings and getgenv().AutofarmSettings.Shouts
-                    local msg = (shouts and shouts["Goal Set"]) or "Goal set for {buyer}"
-                    game.ReplicatedStorage.MainEvent:FireServer("Shout", msg:gsub("{buyer}", "@"..targetPlayer.Name))
-                    if getgenv().AddGoalSetLog then
-                        getgenv().AddGoalSetLog(targetPlayer)
-                    end
-                    if getgenv().BringOnGoalSet then
-                        game.ReplicatedStorage:WaitForChild("MainEvent"):FireServer("VIP_CMD", "Summon", targetPlayer)
-                    end
-                end
-            else
-                goalValue = 0
-                earnedSoFar = 0
-                goalSent = false
-                checkmark.Visible = false  -- <-- AQUÍ (tercer lugar, cuando se borra sin advertencia)
-                if not isFromAPI and getgenv().ManualClientsCache then
+            -- Re-attach billboard al character nuevo
+            attachBillboardToCharacter()
+            if currentPlayer then
+                charConn = currentPlayer.CharacterAdded:Connect(function()
+                    task.wait(0.2)
+                    attachBillboardToCharacter()
+                end)
+            end
+
+            updateLabels()
+        end
+
+        -- =========================
+        -- Restore / Init goal logic
+        -- =========================
+        if isRestoring and initialGoal then
+            goalValue = initialGoal
+            goalBox.Text = FormatNumber(goalValue)
+        elseif isFromAPI then
+            goalValue = initialGoal
+            goalBox.Text = FormatNumber(goalValue)
+        end
+
+        -- Si venimos con pending/goal, queremos que goalStartCurrency sea “base real”
+        -- (se terminará de fijar en bindToPlayer cuando exista currencyValue)
+        goalSent = false
+
+        -- =========================
+        -- Remove button
+        -- =========================
+        removeBtn.MouseButton1Click:Connect(function()
+            if not isFromAPI then
+                if getgenv().ManualClientsCache then
                     getgenv().ManualClientsCache[oderId] = nil
                 end
             end
+
+            getgenv().AddedBuyerIds[oderId] = nil
+            if getgenv().ApiBuyerFrames[oderId] then getgenv().ApiBuyerFrames[oderId] = nil end
+            frame:Destroy()
+        end)
+
+        -- =========================
+        -- Global re-connection listeners
+        -- =========================
+        removingConn = Players.PlayerRemoving:Connect(function(p)
+            if p and p.UserId == oderId then
+                -- queda “offline” pero NO pierde progreso/meta
+                disconnectTrackers()
+                billboard.Adornee = nil
+                updateLabels()
+            end
+        end)
+
+        addedConn = Players.PlayerAdded:Connect(function(p)
+            if p and p.UserId == oderId then
+                -- re-bind completo al nuevo Player instance
+                bindToPlayer(p)
+            end
+        end)
+
+        frame.Destroying:Connect(function()
+            disconnectTrackers()
+            if removingConn then removingConn:Disconnect() removingConn = nil end
+            if addedConn then addedConn:Disconnect() addedConn = nil end
+            if billboard then billboard:Destroy() end
+        end)
+
+        -- ✅ Bind inicial
+        bindToPlayer(currentPlayer)
+
+        -- =========================
+        -- GoalBox parsing + cache
+        -- =========================
+        goalBox.FocusLost:Connect(function(enter)
+            if not enter then return end
+            if isFromAPI then return end
+
+            local text = goalBox.Text or ""
+            text = string.gsub(text, "%$", "")
+            text = string.gsub(text, ",", "")
+            text = string.gsub(text, "%.", "")
+
+            local num = tonumber(text)
+            if not num or num < 0 then
+                goalBox.Text = ""
+                goalValue = 0
+                goalSent = false
+                updateLabels()
+                return
+            end
+
+            goalValue = math.floor(num)
+            goalSent = false
+            goalBox.Text = FormatNumber(goalValue)
+
+            if getgenv().UpdateManualCache then
+                getgenv().UpdateManualCache(oderId, goalValue, earnedSoFar)
+            end
+
+            -- Si todavía no fijamos goalStartCurrency (por ejemplo, estaba offline), lo fijamos cuando haya currency
+            if goalStartCurrency == nil and currencyValue then
+                goalStartCurrency = currencyValue.Value - earnedSoFar
+            end
+
             updateLabels()
         end)
 
